@@ -1,0 +1,129 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+version = "0.1.0"
+
+android {
+    buildToolsVersion '27.0.3'
+    compileSdkVersion 27
+
+    dataBinding.enabled = true
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode = 3
+        versionName = version
+
+        consumerProguardFiles 'proguard.pro'
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:support-annotations:27.0.0'
+    implementation 'com.braintreepayments.api:braintree:2.0.0'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
+    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testImplementation 'org.robolectric:robolectric:3.3.2'
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
+
+/* maven deploy + signing */
+task javadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    failOnError false
+}
+
+task javadocsJar(type: Jar, dependsOn: javadocs) {
+    classifier = 'javadoc'
+    from javadocs.destinationDir
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives javadocsJar
+    archives sourcesJar
+}
+
+signing {
+    required { !version.endsWith("SNAPSHOT") }
+    sign configurations.archives
+}
+
+def sonatypeUsername = System.env['SONATYPE_USERNAME']
+def sonatypePassword = System.env['SONATYPE_PASSWORD']
+
+nexusStaging {
+    packageGroup = "com.braintreepayments"
+    username = sonatypeUsername
+    password = sonatypePassword
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            pom.setArtifactId 'samsung-pay'
+
+            pom.project {
+                name 'samsung-pay'
+                groupId = 'com.braintreepayments.api'
+                version = "${android.defaultConfig.versionName}"
+                packaging 'jar'
+                description 'Samsung Pay Module for Braintree\'s Android SDK.'
+                url 'https://github.com/braintree/braintree-android-samsung-pay'
+
+                scm {
+                    url 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                    connection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                    developerConnection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                }
+
+                developers {
+                    developer {
+                        id 'devs'
+                        name 'Braintree Payments'
+                    }
+                }
+
+                licenses {
+                    license {
+                        name 'MIT'
+                        url 'http://opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
+            }
+
+            pom.whenConfigured {
+                it.dependencies.removeAll { true }
+            }
+        }
+    }
+}
