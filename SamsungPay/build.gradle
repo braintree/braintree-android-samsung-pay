@@ -26,18 +26,22 @@ android {
 }
 
 dependencies {
-    compile(group: 'com.samsung.android', name: 'samsungpay', version: '1.9.0', ext: 'jar')
+    implementation(group: 'com.samsung.android', name: 'samsungpay', version: '1.9.0', ext: 'jar')
 
     implementation 'com.android.support:support-annotations:27.1.0'
     implementation 'com.braintreepayments.api:braintree:2.12.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
+    testImplementation 'com.google.android.gms:play-services-wallet:11.4.0'
     testImplementation 'junit:junit:4.12'
+    testImplementation 'com.android.support.test:runner:1.0.0'
+    testImplementation 'com.android.support.test:rules:1.0.0'
     testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
     testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
     testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
     testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
-    testImplementation 'org.robolectric:robolectric:3.3.2'
+    testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testImplementation 'org.robolectric:robolectric:3.5.1'
 }
 
 /* maven deploy + signing */
@@ -126,7 +130,4 @@ uploadArchives {
             }
         }
     }
-}
-repositories {
-    mavenCentral()
 }

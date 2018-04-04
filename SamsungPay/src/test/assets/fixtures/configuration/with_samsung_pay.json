@@ -1,0 +1,26 @@
+{
+  "clientApiUrl": "client_api_url",
+  "environment": "test",
+  "merchantId": "integration_merchant_id",
+  "merchantAccountId": "integration_merchant_account_id",
+  "creditCards": {
+    "supportedCardTypes": [
+      "American Express",
+      "Discover",
+      "JCB",
+      "MasterCard",
+      "Visa"
+    ]
+  },
+  "samsungPay": {
+    "serviceId": "1f7bb987065d4e16aa5f1f",
+    "merchantName": "Test Merchant",
+    "merchantId": "some-tokenization-key",
+    "supportedCardTypes": [
+      "American Express",
+      "Discover",
+      "MasterCard",
+      "Visa"
+    ]
+  }
+}
