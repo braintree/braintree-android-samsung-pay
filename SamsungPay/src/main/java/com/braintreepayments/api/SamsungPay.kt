@@ -3,7 +3,6 @@
 package com.braintreepayments.api
 
 import android.os.Bundle
-import android.util.Log
 import com.braintreepayments.api.exceptions.ConfigurationException
 import com.braintreepayments.api.interfaces.BraintreeResponseListener
 import com.braintreepayments.api.internal.ClassHelper
@@ -11,7 +10,6 @@ import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
-import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import java.util.*
@@ -51,7 +49,7 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
 }
 
 // TODO: find appropriate testing values and flesh this out when configuration is complete
-fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder) {
+fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { info ->
         // TODO remove and pull these values from SamsungPayConfiguration
         var brandsFromConfiguration: ArrayList<String> = ArrayList()
@@ -60,11 +58,15 @@ fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo
 
         paymentInfoBuilder.setMerchantName(merchantName)
                 .setMerchantId(merchantId)
+                .setOrderNumber("1234567890")
                 .setAllowedCardBrands(samsungPayAcceptedCardBrands(brandsFromConfiguration))
 
         val paymentManager = PaymentManager(fragment.applicationContext, info)
 
-        paymentManager.startInAppPay(paymentInfoBuilder.build(), TransactionInfoListener())
+        val paymentInfo = paymentInfoBuilder.build()
+
+        var callbacks = SamsungPayTransactionInfoListenerFacade(fragment, paymentInfo, paymentManager, listener)
+        paymentManager.startInAppPay(paymentInfoBuilder.build(), callbacks)
     })
 }
 
@@ -96,24 +98,4 @@ private fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeRespo
 
 private fun isSamsungPayAvailable(): Boolean {
     return ClassHelper.isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
-}
-
-class TransactionInfoListener: PaymentManager.TransactionInfoListener {
-    override fun onSuccess(response: PaymentInfo?, paymentCredential: String?, extraPaymentData: Bundle?) {
-        Log.d("TransactionInfoListener", "Success")
-        Log.d("TransactionInfoListener", paymentCredential)
-    }
-
-    override fun onFailure(errorCode: Int, errorData: Bundle?) {
-        Log.d("TransactionInfoListener", "failure")
-        Log.d("TransactionInfoListener", errorCode.toString())
-    }
-
-    override fun onAddressUpdated(paymentInfo: PaymentInfo?) {
-        Log.d("TransactionInfoListener", "addressUpdated")
-    }
-
-    override fun onCardInfoUpdated(cardInfo: CardInfo?) {
-        Log.d("TransactionInfoListener", "cardUpdated")
-    }
 }
