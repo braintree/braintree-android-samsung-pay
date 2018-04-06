@@ -53,7 +53,7 @@ public class SamsungPayUnitTest {
 
 	@Test(timeout = 1000)
 	@SuppressWarnings("unchecked")
-	public void isReadyToPay_whenSDKNotAvailable_returnsFalse() throws ClassNotFoundException {
+	public void isReadyToPay_whenSDKNotAvailable_returnsFalse() {
 		mockStatic(ClassHelper.class);
 		when(ClassHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
 

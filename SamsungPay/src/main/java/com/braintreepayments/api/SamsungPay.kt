@@ -10,6 +10,7 @@ import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
+import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import java.util.*
@@ -19,6 +20,12 @@ private val serviceId = "1f7bb987065d4e16aa5f1f"
 private val merchantId = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn" // TODO pull merchantId out of configuration
 private val merchantName = "bt-dx-integration-test"
 
+/**
+ * Call isReadyToPay before starting your SamsungPay flow. IsReadyToPay will call you back with the
+ * status of Samsung Pay.
+ *
+ * TODO(Modify this s.t. the response listener also passes the reason for readiness, so that the merchant can take available actions)
+ */
 fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListener<Boolean>) {
     if (!isSamsungPayAvailable()) {
         listener.onResponse(false)
@@ -48,7 +55,10 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
     })
 }
 
-// TODO: find appropriate testing values and flesh this out when configuration is complete
+/**
+ * startSamsungPay takes a PaymentInfo.Builder and starts intitiates the SamsungPay flow
+ * with the normal UI provied by SamsungPay.
+ */
 fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { info ->
         // TODO remove and pull these values from SamsungPayConfiguration
@@ -65,8 +75,28 @@ fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo
 
         val paymentInfo = paymentInfoBuilder.build()
 
-        var callbacks = SamsungPayTransactionInfoListenerFacade(fragment, paymentInfo, paymentManager, listener)
+        val callbacks = SamsungPayTransactionInfoListenerFacade(fragment, paymentInfo, paymentManager, listener)
         paymentManager.startInAppPay(paymentInfoBuilder.build(), callbacks)
+    })
+}
+
+/**
+ * startSamsungPay takes a CustomSheetInfo.Builder and starts intitiates the SamsungPay flow
+ * with some custom UI provided by you.
+ */
+fun startSamsungPay(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder, listener: SamsungCustomSheetTransactionListener) {
+    getPartnerInfo(fragment, BraintreeResponseListener { info ->
+        var brandsFromConfiguration: ArrayList<String> = ArrayList()
+        brandsFromConfiguration.add("Visa")
+        brandsFromConfiguration.add("Mastercard")
+
+        customSheetPaymentInfoBuilder.setMerchantId(merchantId)
+                .setMerchantName(merchantName)
+                .setAllowedCardBrands(samsungPayAcceptedCardBrands(brandsFromConfiguration));
+
+        val paymentManager = PaymentManager(fragment.applicationContext, info)
+
+        paymentManager.startInAppPayWithCustomSheet(customSheetPaymentInfoBuilder.build(), SamsungPayCustomSheetTransactionInfoListenerFacade(fragment, paymentManager, listener))
     })
 }
 
