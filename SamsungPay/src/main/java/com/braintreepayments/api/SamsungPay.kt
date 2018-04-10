@@ -3,7 +3,7 @@
 package com.braintreepayments.api
 
 import android.os.Bundle
-import com.braintreepayments.api.exceptions.ConfigurationException
+import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.BraintreeResponseListener
 import com.braintreepayments.api.internal.ClassHelper
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
@@ -22,23 +22,21 @@ private val merchantName = "bt-dx-integration-test"
 
 /**
  * Call isReadyToPay before starting your SamsungPay flow. IsReadyToPay will call you back with the
- * status of Samsung Pay.
+ * status of Samsung Pay. If the SamsungPay jar has not been included, or the status of
+ * SamsungPay is anything but [SamsungPay.SPAY_READY], the listener will be called back
+ * with a value of false. If the SamsungPay callback fails and returns an error, that error
+ * will be posted to the [BraintreeErrorListener] callback attached to the instance of [BraintreeFragment]
+ * passed in here.
  *
  * TODO(Modify this s.t. the response listener also passes the reason for readiness, so that the merchant can take available actions)
  */
 fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListener<Boolean>) {
     if (!isSamsungPayAvailable()) {
         listener.onResponse(false)
-        fragment.postCallback(ConfigurationException("Samsung SDK not found on classpath. " +
-                "Please add the Samsung Pay SDK as a dependency to your build.gradle file. " +
-                "For more information refer to the docs http://developers.braintreepayments.com/todo/docs/link/here"))
-
         return
     }
 
-    getPartnerInfo(fragment, BraintreeResponseListener { info ->
-        val samsungPay = SamsungPay(fragment.applicationContext, info)
-
+    getSamsungPay(fragment, BraintreeResponseListener { samsungPay ->
         samsungPay.getSamsungPayStatus(object : StatusListener {
             override fun onSuccess(status: Int, bundle: Bundle) {
                 when (status) {
@@ -49,7 +47,8 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
             }
 
             override fun onFail(errorCode: Int, bundle: Bundle) {
-                fragment.postCallback(ConfigurationException("SamsungPay is not available"))
+                listener.onResponse(false)
+                fragment.postCallback(SamsungPayException(errorCode, bundle))
             }
         })
     })
@@ -57,7 +56,7 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
 
 /**
  * startSamsungPay takes a PaymentInfo.Builder and starts intitiates the SamsungPay flow
- * with the normal UI provied by SamsungPay.
+ * with the normal UI provided by SamsungPay.
  */
 fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { info ->
@@ -92,12 +91,20 @@ fun startSamsungPay(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: 
 
         customSheetPaymentInfoBuilder.setMerchantId(merchantId)
                 .setMerchantName(merchantName)
-                .setAllowedCardBrands(samsungPayAcceptedCardBrands(brandsFromConfiguration));
+                .setAllowedCardBrands(samsungPayAcceptedCardBrands(brandsFromConfiguration))
 
         val paymentManager = PaymentManager(fragment.applicationContext, info)
 
         paymentManager.startInAppPayWithCustomSheet(customSheetPaymentInfoBuilder.build(), SamsungPayCustomSheetTransactionInfoListenerFacade(fragment, paymentManager, listener))
     })
+}
+
+/**
+ * @return {@code true} if the SamsungPay SDK is available in the classpath. I.e., you have included
+ * the SamsungPay jar in your declared app dependencies.
+ */
+fun isSamsungPayAvailable(): Boolean {
+    return ClassHelper.isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
 }
 
 private fun samsungPayAcceptedCardBrands(braintreeAcceptedCardBrands: ArrayList<String>): List<SpaySdk.Brand> {
@@ -115,7 +122,7 @@ private fun samsungPayAcceptedCardBrands(braintreeAcceptedCardBrands: ArrayList<
     return samsungAcceptedList
 }
 
-private fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResponseListener<PartnerInfo>) {
+internal fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResponseListener<PartnerInfo>) {
     fragment.waitForConfiguration { configuration ->
         val bundle = Bundle()
         bundle.putString(SamsungPay.PARTNER_SERVICE_TYPE, SpaySdk.ServiceType.INAPP_PAYMENT.toString())
@@ -126,6 +133,10 @@ private fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeRespo
     }
 }
 
-private fun isSamsungPayAvailable(): Boolean {
-    return ClassHelper.isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
+internal fun getSamsungPay(fragment: BraintreeFragment, listener: BraintreeResponseListener<SamsungPay>) {
+    getPartnerInfo(fragment, BraintreeResponseListener { partnerInfo ->
+        val samsungPay = SamsungPay(fragment.applicationContext, partnerInfo)
+
+        listener.onResponse(samsungPay)
+    })
 }
