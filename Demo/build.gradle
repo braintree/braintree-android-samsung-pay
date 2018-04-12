@@ -1,11 +1,9 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "com.braintreepayments.samsungdxtest"
+        applicationId "com.braintreepayments.demo.samsungpay"
         minSdkVersion 16
         targetSdkVersion 27
         versionCode 1

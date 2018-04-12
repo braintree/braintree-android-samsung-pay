@@ -217,14 +217,14 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPay_setsMerchantValues() throws Exception {
+	public void requestPayment_setsMerchantValues() throws Exception {
 		PaymentInfo.Builder paymentInfoBuilder = getPaymentInfoBuilder();
 
 		PaymentManager mockedManager = mock(PaymentManager.class);
 
 		stubPaymentManager(mockedManager);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, paymentInfoBuilder, mock(SamsungPayTransactionUpdateListener.class));
+		SamsungPay.requestPayment(mBraintreeFragment, paymentInfoBuilder, mock(SamsungPayTransactionUpdateListener.class));
 
 		ArgumentCaptor<PaymentInfo> paymentInfoCaptor = ArgumentCaptor.forClass(PaymentInfo.class);
 
@@ -250,7 +250,7 @@ public class SamsungPayUnitTest {
 
 		stubPaymentManager(mockedManager);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, customSheetPaymentInfoBuilder, mock(SamsungPayCustomTransactionUpdateListener.class));
+		SamsungPay.requestPayment(mBraintreeFragment, customSheetPaymentInfoBuilder, mock(SamsungPayCustomTransactionUpdateListener.class));
 
 		ArgumentCaptor<CustomSheetPaymentInfo> customSheetInfoCaptor = ArgumentCaptor.forClass(CustomSheetPaymentInfo.class);
 
@@ -269,7 +269,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPay_addressUpdated_withNullPaymentInfo_doesNothing() throws NoSuchMethodException {
+	public void requestPayment_addressUpdated_withNullPaymentInfo_doesNothing() throws NoSuchMethodException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), any(PaymentManager.TransactionInfoListener.class));
@@ -278,7 +278,7 @@ public class SamsungPayUnitTest {
 		SamsungPayTransactionUpdateListener mockedListener = mock(SamsungPayTransactionUpdateListener.class);
 		ArgumentCaptor<PaymentManager.TransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.TransactionInfoListener.class);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), listenerCaptor.capture());
 
 		listenerCaptor.getValue().onAddressUpdated(null);
@@ -286,7 +286,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPay_addressUpdated_updatesAmount() throws NoSuchMethodException, InterruptedException {
+	public void requestPayment_addressUpdated_updatesAmount() throws NoSuchMethodException, InterruptedException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), any(PaymentManager.TransactionInfoListener.class));
@@ -305,7 +305,7 @@ public class SamsungPayUnitTest {
 
 		when(mockedListener.onAddressUpdated(any(PaymentInfo.class))).thenReturn(newAmount);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), listenerCaptor.capture());
 
 		listenerCaptor.getValue().onAddressUpdated(getPaymentInfoBuilder().build());
@@ -314,7 +314,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPay_cardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
+	public void requestPayment_cardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), any(PaymentManager.TransactionInfoListener.class));
@@ -323,7 +323,7 @@ public class SamsungPayUnitTest {
 		SamsungPayTransactionUpdateListener mockedListener = mock(SamsungPayTransactionUpdateListener.class);
 		ArgumentCaptor<PaymentManager.TransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.TransactionInfoListener.class);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), listenerCaptor.capture());
 
 		listenerCaptor.getValue().onCardInfoUpdated(null);
@@ -331,7 +331,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPay_cardInfoUpdated_updatesAmount() throws NoSuchMethodException, InterruptedException {
+	public void requestPayment_cardInfoUpdated_updatesAmount() throws NoSuchMethodException, InterruptedException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), any(PaymentManager.TransactionInfoListener.class));
@@ -350,7 +350,7 @@ public class SamsungPayUnitTest {
 
 		when(mockedListener.onCardInfoUpdated(any(CardInfo.class))).thenReturn(newAmount);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), listenerCaptor.capture());
 
 		listenerCaptor.getValue().onCardInfoUpdated(new CardInfo.Builder().build());
@@ -359,7 +359,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPay_onFailure_postsException() throws NoSuchMethodException {
+	public void requestPayment_onFailure_postsException() throws NoSuchMethodException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), any(PaymentManager.TransactionInfoListener.class));
@@ -369,7 +369,7 @@ public class SamsungPayUnitTest {
 		ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
 		SamsungPayTransactionUpdateListener mockedListener = mock(SamsungPayTransactionUpdateListener.class);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPay(any(PaymentInfo.class), listenerCaptor.capture());
 
 		listenerCaptor.getValue().onFailure(SpaySdk.ERROR_ALREADY_DONE, null);
@@ -383,7 +383,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPayCustom_onCardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
+	public void requestPaymentCustom_onCardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager)
@@ -394,7 +394,7 @@ public class SamsungPayUnitTest {
 		ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
 		SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
 																  listenerCaptor.capture());
 
@@ -405,7 +405,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPayCustom_onCardInfoUpdated_updatesPaymentManager() throws NoSuchMethodException {
+	public void requestPaymentCustom_onCardInfoUpdated_updatesPaymentManager() throws NoSuchMethodException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager)
@@ -416,7 +416,7 @@ public class SamsungPayUnitTest {
 		ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
 		SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
 																  listenerCaptor.capture());
 
@@ -431,7 +431,7 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPayCustom_onFailure_postsException() throws NoSuchMethodException {
+	public void requestPaymentCustom_onFailure_postsException() throws NoSuchMethodException {
 		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
 		PowerMockito.doNothing().when(mockedPaymentManager)
@@ -443,7 +443,7 @@ public class SamsungPayUnitTest {
 		ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
 		SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-		SamsungPay.startSamsungPay(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
+		SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
 		verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
 																  listenerCaptor.capture());
 

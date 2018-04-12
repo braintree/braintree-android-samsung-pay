@@ -12,10 +12,13 @@ import com.braintreepayments.api.internal.ClassHelper
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
+import com.samsung.android.sdk.samsungpay.v2.SpaySdk.*
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
+import java.util.*
+
 
 // TODO pull SamsungPay stanza out of out of configuration, look for these values
 private val serviceId = "1f7bb987065d4e16aa5f1f"
@@ -47,9 +50,9 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
         samsungPay.getSamsungPayStatus(object : StatusListener {
             override fun onSuccess(status: Int, bundle: Bundle) {
                 when (status) {
-                    com.samsung.android.sdk.samsungpay.v2.SamsungPay.SPAY_NOT_SUPPORTED,
-                    com.samsung.android.sdk.samsungpay.v2.SamsungPay.SPAY_NOT_READY -> listener.onResponse(false)
-                    com.samsung.android.sdk.samsungpay.v2.SamsungPay.SPAY_READY -> listener.onResponse(true)
+                    SPAY_NOT_SUPPORTED,
+                    SPAY_NOT_READY -> listener.onResponse(false)
+                    SPAY_READY -> listener.onResponse(true)
                 }
             }
 
@@ -62,14 +65,14 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
 }
 
 /**
- * startSamsungPay takes a PaymentInfo.Builder and starts intitiates the SamsungPay flow
+ * requestPayment takes a PaymentInfo.Builder and starts intitiates the SamsungPay flow
  * with the normal UI provided by SamsungPay.
  *
  * @param [fragment] TODO
  * @param [paymentInfoBuilder] TODO
  * @param [listener] TODO
  */
-fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionUpdateListener) {
+fun requestPayment(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionUpdateListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         paymentInfoBuilder.setMerchantName(merchantName)
                 .setMerchantId(merchantId)
@@ -84,14 +87,14 @@ fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo
 }
 
 /**
- * [startSamsungPay] takes a CustomSheetInfo.Builder and starts intitiates the SamsungPay flow
+ * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the SamsungPay flow
  * with some custom UI provided by you.
  *
  * @param [fragment] TODO
  * @param [customSheetPaymentInfoBuilder] TODO
  * @param [listener] TODO
  */
-fun startSamsungPay(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder, listener: SamsungPayCustomTransactionUpdateListener) {
+fun requestPayment(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder, listener: SamsungPayCustomTransactionUpdateListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         customSheetPaymentInfoBuilder.setMerchantId(merchantId)
                 .setMerchantName(merchantName)
@@ -116,12 +119,13 @@ private fun getAcceptedCardBrands(configurationBrands: List<String>): List<SpayS
     val samsungAcceptedList = ArrayList<SpaySdk.Brand>()
 
     for (braintreeAcceptedCardBrand in configurationBrands) {
-        when (braintreeAcceptedCardBrand.toLowerCase()) {
-            "visa" -> samsungAcceptedList.add(SpaySdk.Brand.VISA)
-            "mastercard" -> samsungAcceptedList.add(SpaySdk.Brand.MASTERCARD)
-            "discover" -> samsungAcceptedList.add(SpaySdk.Brand.DISCOVER)
-            "american express" -> samsungAcceptedList.add(SpaySdk.Brand.AMERICANEXPRESS)
-        }
+        samsungAcceptedList.add(when(braintreeAcceptedCardBrand.toLowerCase()) {
+            "visa" -> SpaySdk.Brand.VISA
+            "mastercard" -> SpaySdk.Brand.MASTERCARD
+            "discover" -> SpaySdk.Brand.DISCOVER
+            "american express" -> SpaySdk.Brand.AMERICANEXPRESS
+            else -> SpaySdk.Brand.UNKNOWN_CARD
+        })
     }
 
     return samsungAcceptedList
