@@ -6,8 +6,8 @@ import android.os.Bundle
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.BraintreeErrorListener
 import com.braintreepayments.api.interfaces.BraintreeResponseListener
-import com.braintreepayments.api.interfaces.SamsungPayCustomSheetTransactionListener
-import com.braintreepayments.api.interfaces.SamsungPayTransactionListener
+import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
+import com.braintreepayments.api.interfaces.SamsungPayTransactionUpdateListener
 import com.braintreepayments.api.internal.ClassHelper
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
@@ -69,7 +69,7 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
  * @param [paymentInfoBuilder] TODO
  * @param [listener] TODO
  */
-fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionListener) {
+fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionUpdateListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         paymentInfoBuilder.setMerchantName(merchantName)
                 .setMerchantId(merchantId)
@@ -91,7 +91,7 @@ fun startSamsungPay(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo
  * @param [customSheetPaymentInfoBuilder] TODO
  * @param [listener] TODO
  */
-fun startSamsungPay(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder, listener: SamsungPayCustomSheetTransactionListener) {
+fun startSamsungPay(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder, listener: SamsungPayCustomTransactionUpdateListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         customSheetPaymentInfoBuilder.setMerchantId(merchantId)
                 .setMerchantName(merchantName)
@@ -100,7 +100,7 @@ fun startSamsungPay(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: 
         val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
 
         paymentManager.startInAppPayWithCustomSheet(customSheetPaymentInfoBuilder.build(),
-                SamsungPayCustomSheetTransactionListenerFacade(fragment, paymentManager, listener))
+                SamsungPayCustomTransactionListenerWrapper(fragment, paymentManager, listener))
     })
 }
 
@@ -153,6 +153,6 @@ internal fun getPaymentManager(fragment: BraintreeFragment, info: PartnerInfo): 
 internal fun getSamsungPayTransactionInfoListener(fragment: BraintreeFragment,
                                                   info: PaymentInfo,
                                                   manager: PaymentManager,
-                                                  listener: SamsungPayTransactionListener) : PaymentManager.TransactionInfoListener {
-    return SamsungPayTransactionInfoListenerFacade(fragment, info, manager, listener)
+                                                  listener: SamsungPayTransactionUpdateListener) : PaymentManager.TransactionInfoListener {
+    return SamsungPayTransactionListenerWrapper(fragment, info, manager, listener)
 }

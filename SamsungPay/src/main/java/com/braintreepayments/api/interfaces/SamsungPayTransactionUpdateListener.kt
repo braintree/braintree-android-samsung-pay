@@ -9,7 +9,7 @@ import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo
  * to update the amount. Both methods are nullable, if the amount should not change, simply return
  * null.
  */
-interface SamsungPayTransactionListener {
+interface SamsungPayTransactionUpdateListener {
     fun onAddressUpdated(paymentInfo: PaymentInfo): PaymentInfo.Amount?
     fun onCardInfoUpdated(cardInfo: CardInfo): PaymentInfo.Amount?
 }
