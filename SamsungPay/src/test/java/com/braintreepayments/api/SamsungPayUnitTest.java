@@ -8,14 +8,19 @@ import android.os.Bundle;
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.BraintreeErrorListener;
 import com.braintreepayments.api.interfaces.BraintreeResponseListener;
+import com.braintreepayments.api.interfaces.SamsungPayCustomSheetTransactionListener;
+import com.braintreepayments.api.interfaces.SamsungPayTransactionListener;
 import com.braintreepayments.api.internal.ClassHelper;
+import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
+import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
-import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
+import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager;
+import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountBoxControl;
+import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountConstants;
+import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +37,7 @@ import org.robolectric.RuntimeEnvironment;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static com.braintreepayments.api.test.FixturesHelper.stringFromFixture;
@@ -46,13 +52,22 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*", "com.samsung.*" })
-@PrepareForTest({ ClassHelper.class, SamsungPay.class,
-		com.samsung.android.sdk.samsungpay.v2.SamsungPay.class, PaymentManager.class })
+@PrepareForTest(value = {
+			ClassHelper.class,
+			SamsungPay.class,
+			com.samsung.android.sdk.samsungpay.v2.SamsungPay.class,
+			PaymentManager.class
+		},
+		fullyQualifiedNames = {
+				"com.samsung.android.sdk.samsungpay.v2.SpaySdk$Brand$1"
+		}
+)
 public class SamsungPayUnitTest {
 
 	@Rule
@@ -160,17 +175,20 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void isReadyToPay_onFailure_postsException() throws NoSuchMethodException, InterruptedException {
-		stubSamsungPay(new Answer() {
+	public void isReadyToPay_onFailure_postsException() throws InterruptedException, NoSuchMethodException {
+		com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
+		doAnswer(new Answer<Void>() {
 			@Override
-			public Object answer(InvocationOnMock invocation) {
+			public Void answer(InvocationOnMock invocation) {
 				StatusListener listener = (StatusListener) invocation.getArguments()[0];
 
 				listener.onFail(com.samsung.android.sdk.samsungpay.v2.SamsungPay.ERROR_DEVICE_NOT_SAMSUNG, new Bundle());
 
 				return null;
 			}
-		});
+		}).when(mockedSamsungPay).getSamsungPayStatus(any(StatusListener.class));
+
+		stubSamsungPay(mockedSamsungPay);
 
 		final CountDownLatch latch = new CountDownLatch(1);
 
@@ -195,8 +213,103 @@ public class SamsungPayUnitTest {
 	}
 
 	@Test
-	public void startSamsungPay_setsMerchantId() throws NoSuchMethodException {
-		PaymentInfo.Builder info = new PaymentInfo.Builder()
+	public void startSamsungPay_setsMerchantValues() throws Exception {
+		PaymentInfo.Builder paymentInfoBuilder = getPaymentInfoBuilder();
+
+		PaymentManager mockedManager = mock(PaymentManager.class);
+
+		stubPaymentManager(mockedManager);
+
+		SamsungPay.startSamsungPay(mBraintreeFragment, paymentInfoBuilder, mock(SamsungPayTransactionListener.class));
+
+		ArgumentCaptor<PaymentInfo> paymentInfoCaptor = ArgumentCaptor.forClass(PaymentInfo.class);
+		verify(mockedManager).startInAppPay(paymentInfoCaptor.capture(), any(PaymentManager.TransactionInfoListener.class));
+
+		PaymentInfo infoArgument = paymentInfoCaptor.getValue();
+		assertEquals("sandbox_tmxhyf7d_dcpspy2brwdjr3qn", infoArgument.getMerchantId());
+		assertEquals("bt-dx-integration-test", infoArgument.getMerchantName());
+
+		List<SpaySdk.Brand> brands = infoArgument.getAllowedCardBrands();
+		assertTrue(brands.contains(SpaySdk.Brand.VISA));
+		assertTrue(brands.contains(SpaySdk.Brand.DISCOVER));
+		assertTrue(brands.contains(SpaySdk.Brand.MASTERCARD));
+		assertTrue(brands.contains(SpaySdk.Brand.AMERICANEXPRESS));
+	}
+
+	@Test
+	public void startSamsungpay_customUi_setsMerchantValues() throws NoSuchMethodException {
+		CustomSheetPaymentInfo.Builder customSheetPaymentInfoBuilder = getCustomSheetPaymentInfoBuilder();
+
+		PaymentManager mockedManager = mock(PaymentManager.class);
+
+		stubPaymentManager(mockedManager);
+
+		SamsungPay.startSamsungPay(mBraintreeFragment, customSheetPaymentInfoBuilder, mock(SamsungPayCustomSheetTransactionListener.class));
+
+		ArgumentCaptor<CustomSheetPaymentInfo> customSheetInfoCaptor = ArgumentCaptor.forClass(CustomSheetPaymentInfo.class);
+		verify(mockedManager).startInAppPayWithCustomSheet(customSheetInfoCaptor.capture(), any(PaymentManager.CustomSheetTransactionInfoListener.class));
+
+		CustomSheetPaymentInfo infoArgument = customSheetInfoCaptor.getValue();
+		assertEquals("sandbox_tmxhyf7d_dcpspy2brwdjr3qn", infoArgument.getMerchantId());
+		assertEquals("bt-dx-integration-test", infoArgument.getMerchantName());
+
+		List<SpaySdk.Brand> brands = infoArgument.getAllowedCardBrands();
+		assertTrue(brands.contains(SpaySdk.Brand.VISA));
+		assertTrue(brands.contains(SpaySdk.Brand.DISCOVER));
+		assertTrue(brands.contains(SpaySdk.Brand.MASTERCARD));
+		assertTrue(brands.contains(SpaySdk.Brand.AMERICANEXPRESS));
+	}
+
+	@Test
+	public void startSamsungPay_addressUpdated_withNullPaymentInfo_doesNothing() throws NoSuchMethodException {
+		PaymentManager mockedPaymentManager = mock(PaymentManager.class);
+
+		stubPaymentManager(mockedPaymentManager);
+
+
+	}
+
+	private void stubSamsungPayStatus(final int status) throws NoSuchMethodException {
+		final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
+
+		PowerMockito.doAnswer(new Answer<Void>() {
+			@Override
+			public Void answer(InvocationOnMock invocation) {
+				StatusListener listener = (StatusListener) invocation.getArguments()[0];
+
+				listener.onSuccess(status, new Bundle());
+
+				return null;
+			}
+		}).when(mockedSamsungPay).getSamsungPayStatus(any(StatusListener.class));
+
+		stubSamsungPay(mockedSamsungPay);
+	}
+
+	private void stubSamsungPay(final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay) throws NoSuchMethodException {
+		Method getSamsungPay = SamsungPay.class.getDeclaredMethod("getSamsungPay", BraintreeFragment.class, PartnerInfo.class);
+
+		PowerMockito.replace(getSamsungPay).with(new InvocationHandler() {
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) {
+				return mockedSamsungPay;
+			}
+		});
+	}
+
+	private void stubPaymentManager(final PaymentManager mockedPaymentManager) throws NoSuchMethodException {
+		Method getPaymentManager = SamsungPay.class.getDeclaredMethod("getPaymentManager", BraintreeFragment.class, PartnerInfo.class);
+
+		PowerMockito.replace(getPaymentManager).with(new InvocationHandler() {
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) {
+				return mockedPaymentManager;
+			}
+		});
+	}
+
+	private PaymentInfo.Builder getPaymentInfoBuilder() {
+		return new PaymentInfo.Builder()
 				.setAmount(new PaymentInfo.Amount.Builder()
 								   .setTotalPrice("10")
 								   .setItemTotalPrice("10")
@@ -204,111 +317,21 @@ public class SamsungPayUnitTest {
 								   .setShippingPrice("0")
 								   .setCurrencyCode("USD")
 								   .build());
-
-		PaymentManager mockedManager = mock(PaymentManager.class);
-
-		stubPaymentManager(mockedManager);
-
-		SamsungPay.startSamsungPay(mBraintreeFragment, info, new SamsungPayTransactionListener() {
-			@Nullable
-			@Override
-			public PaymentInfo.Amount onAddressUpdated(@NotNull PaymentInfo paymentInfo) {
-				return null;
-			}
-
-			@Nullable
-			@Override
-			public PaymentInfo.Amount onCardInfoUpdated(@NotNull CardInfo cardInfo) {
-				return null;
-			}
-		});
-
-		ArgumentCaptor<PaymentInfo> paymentInfoCaptor = ArgumentCaptor.forClass(PaymentInfo.class);
-		verify(mockedManager).startInAppPay(paymentInfoCaptor.capture(), any(PaymentManager.TransactionInfoListener.class));
-
-		PaymentInfo infoArgument = paymentInfoCaptor.getValue();
-		assertEquals("sandbox_tmxhyf7d_dcpspy2brwdjr3qn", infoArgument.getMerchantId());
 	}
 
-	@Test
-	public void startSamsungPay_setsMerchantName() {
+	private CustomSheetPaymentInfo.Builder getCustomSheetPaymentInfoBuilder() {
+		final AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
+		amountBoxControl.addItem("itemId", "Items", 1000, "");
+		amountBoxControl.addItem("taxId", "Tax", 50, "");
+		amountBoxControl.addItem("shippingId", "Shipping", 10, "");
+		amountBoxControl.addItem("interestId", "Interest [ex]", 0, "");
+		amountBoxControl.setAmountTotal(1050 + amountBoxControl.getValue("shippingId") + amountBoxControl.getValue("interestId"), AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
+		amountBoxControl.addItem(3, "fuelId", "FUEL", 0, "Pending");
 
-	}
+		CustomSheet sheet = new CustomSheet();
+		sheet.addControl(amountBoxControl);
 
-	@Test
-	public void startSamsungPay_setsAllowedCardBrands() {
-
-	}
-
-	@Test
-	public void startSamsungPay_whenAddressUpdated_callsListener() {
-
-	}
-
-	@Test
-	public void startSamsungPay_whenCardInfoUpdated_callsListener() {
-
-	}
-
-	@Test
-	public void startSamsungPay_customUI_setsMerchantId() {
-
-	}
-
-	@Test
-	public void startSamsungPay_customUI_setsMerchantName() {
-
-	}
-
-	@Test
-	public void startSamsungPay_customUI_setsAllowedCardBrands() {
-
-	}
-
-	private void stubSamsungPayStatus(final int status) throws NoSuchMethodException {
-		stubSamsungPay(new Answer() {
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				StatusListener listener = (StatusListener) invocation.getArguments()[0];
-
-				listener.onSuccess(status, new Bundle());
-
-				return null;
-			}
-		});
-	}
-
-	private void stubSamsungPay(Answer answer) throws NoSuchMethodException {
-		final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
-
-		PowerMockito.doAnswer(answer).when(mockSamsungPay).getSamsungPayStatus(any(StatusListener.class));
-
-		Method getSamsungPay = SamsungPay.class.getDeclaredMethod("getSamsungPay", BraintreeFragment.class, BraintreeResponseListener.class);
-
-		PowerMockito.replace(getSamsungPay).with(new InvocationHandler() {
-			@Override
-			public Object invoke(Object proxy, Method method, Object[] args) {
-				BraintreeResponseListener<com.samsung.android.sdk.samsungpay.v2.SamsungPay> listener =
-						(BraintreeResponseListener<com.samsung.android.sdk.samsungpay.v2.SamsungPay>) args[1];
-
-				listener.onResponse(mockSamsungPay);
-
-				return null;
-			}
-		});
-	}
-
-	private void stubPaymentManager(final PaymentManager mockedPaymentManager) throws NoSuchMethodException {
-		Method getPaymentManager = SamsungPay.class.getDeclaredMethod("getPaymentManager", BraintreeFragment.class, BraintreeResponseListener.class);
-
-		PowerMockito.replace(getPaymentManager).with(new InvocationHandler() {
-			@Override
-			public Object invoke(Object proxy, Method method, Object[] args) {
-				BraintreeResponseListener<PaymentManager> listener = (BraintreeResponseListener) args[1];
-				listener.onResponse(mockedPaymentManager);
-
-				return null;
-			}
-		});
+		return new CustomSheetPaymentInfo.Builder()
+				.setCustomSheet(sheet);
 	}
 }

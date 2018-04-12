@@ -9,9 +9,9 @@ import android.view.View;
 import android.widget.Button;
 
 import com.braintreepayments.api.BraintreeFragment;
-import com.braintreepayments.api.SamsungCustomSheetTransactionListener;
+import com.braintreepayments.api.interfaces.SamsungPayCustomSheetTransactionListener;
 import com.braintreepayments.api.SamsungPay;
-import com.braintreepayments.api.SamsungPayTransactionListener;
+import com.braintreepayments.api.interfaces.SamsungPayTransactionListener;
 import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			CustomSheetPaymentInfo.Builder customSheetInfo = new CustomSheetPaymentInfo.Builder()
 					.setCustomSheet(sheet);
 
-			SamsungPay.startSamsungPay(mBraintreeFragment, customSheetInfo, new SamsungCustomSheetTransactionListener() {
+			SamsungPay.startSamsungPay(mBraintreeFragment, customSheetInfo, new SamsungPayCustomSheetTransactionListener() {
 				@Override
 				public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
 					amountBoxControl.updateValue("itemId", 1000);
