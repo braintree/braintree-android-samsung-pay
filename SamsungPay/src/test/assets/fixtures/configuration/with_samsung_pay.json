@@ -13,14 +13,17 @@
     ]
   },
   "samsungPay": {
-    "serviceId": "1f7bb987065d4e16aa5f1f",
-    "merchantName": "Test Merchant",
-    "merchantId": "some-tokenization-key",
-    "supportedCardTypes": [
-      "American Express",
-      "Discover",
-      "MasterCard",
-      "Visa"
-    ]
+    "displayName": "some example merchant",
+    "serviceId": "some-service-id",
+    "supportedCardBrands": [
+      "american_express",
+      "diners",
+      "discover",
+      "jcb",
+      "maestro",
+      "mastercard",
+      "visa"
+    ],
+    "samsungAuthorization": "example-samsung-authorization"
   }
 }

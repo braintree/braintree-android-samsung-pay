@@ -19,12 +19,6 @@ import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import java.util.*
 
-
-// TODO pull SamsungPay stanza out of out of configuration, look for these values
-private val serviceId = "1f7bb987065d4e16aa5f1f"
-private val merchantId = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn"
-private val merchantName = "bt-dx-integration-test"
-
 /**
  * Call isReadyToPay before starting your SamsungPay flow. IsReadyToPay will call you back with the
  * status of Samsung Pay. If the SamsungPay jar has not been included, or the status of
@@ -74,9 +68,9 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
  */
 fun requestPayment(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionUpdateListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
-        paymentInfoBuilder.setMerchantName(merchantName)
-                .setMerchantId(merchantId)
-                .setAllowedCardBrands(braintreePartnerInfo.acceptedCardBrands)
+        paymentInfoBuilder.setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
+                .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
+                .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
 
         val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
         val paymentInfo = paymentInfoBuilder.build()
@@ -96,9 +90,9 @@ fun requestPayment(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.
  */
 fun requestPayment(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder, listener: SamsungPayCustomTransactionUpdateListener) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
-        customSheetPaymentInfoBuilder.setMerchantId(merchantId)
-                .setMerchantName(merchantName)
-                .setAllowedCardBrands(braintreePartnerInfo.acceptedCardBrands)
+        customSheetPaymentInfoBuilder.setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
+                .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
+                .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
 
         val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
 
@@ -115,7 +109,7 @@ fun isSamsungPayAvailable(): Boolean {
     return ClassHelper.isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
 }
 
-private fun getAcceptedCardBrands(configurationBrands: List<String>): List<SpaySdk.Brand> {
+private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<SpaySdk.Brand> {
     val samsungAcceptedList = ArrayList<SpaySdk.Brand>()
 
     for (braintreeAcceptedCardBrand in configurationBrands) {
@@ -123,7 +117,7 @@ private fun getAcceptedCardBrands(configurationBrands: List<String>): List<SpayS
             "visa" -> SpaySdk.Brand.VISA
             "mastercard" -> SpaySdk.Brand.MASTERCARD
             "discover" -> SpaySdk.Brand.DISCOVER
-            "american express" -> SpaySdk.Brand.AMERICANEXPRESS
+            "american_express" -> SpaySdk.Brand.AMERICANEXPRESS
             else -> SpaySdk.Brand.UNKNOWN_CARD
         })
     }
@@ -133,16 +127,12 @@ private fun getAcceptedCardBrands(configurationBrands: List<String>): List<SpayS
 
 internal fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResponseListener<BraintreePartnerInfo>) {
     fragment.waitForConfiguration { configuration ->
-        val brandsFromConfiguration: ArrayList<String> = ArrayList()
-        brandsFromConfiguration.add("Visa")
-        brandsFromConfiguration.add("Mastercard")
-        brandsFromConfiguration.add("Discover")
-        brandsFromConfiguration.add("American Express")
+        val samsungPayConfiguration = configuration.samsungPay
 
         val bundle = Bundle()
         bundle.putString(SamsungPay.PARTNER_SERVICE_TYPE, SpaySdk.ServiceType.INAPP_PAYMENT.toString())
 
-        listener.onResponse(BraintreePartnerInfo(serviceId, bundle, getAcceptedCardBrands(brandsFromConfiguration)))
+        listener.onResponse(BraintreePartnerInfo(bundle, samsungPayConfiguration))
     }
 }
 

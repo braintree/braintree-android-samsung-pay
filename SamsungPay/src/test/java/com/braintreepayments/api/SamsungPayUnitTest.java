@@ -232,8 +232,8 @@ public class SamsungPayUnitTest {
 
 		PaymentInfo infoArgument = paymentInfoCaptor.getValue();
 
-		assertEquals("sandbox_tmxhyf7d_dcpspy2brwdjr3qn", infoArgument.getMerchantId());
-		assertEquals("bt-dx-integration-test", infoArgument.getMerchantName());
+		assertEquals("example-samsung-authorization", infoArgument.getMerchantId());
+		assertEquals("some example merchant", infoArgument.getMerchantName());
 
 		List<SpaySdk.Brand> brands = infoArgument.getAllowedCardBrands();
 		assertTrue(brands.contains(SpaySdk.Brand.VISA));
@@ -258,8 +258,8 @@ public class SamsungPayUnitTest {
 
 		CustomSheetPaymentInfo infoArgument = customSheetInfoCaptor.getValue();
 
-		assertEquals("sandbox_tmxhyf7d_dcpspy2brwdjr3qn", infoArgument.getMerchantId());
-		assertEquals("bt-dx-integration-test", infoArgument.getMerchantName());
+		assertEquals("example-samsung-authorization", infoArgument.getMerchantId());
+		assertEquals("some example merchant", infoArgument.getMerchantName());
 
 		List<SpaySdk.Brand> brands = infoArgument.getAllowedCardBrands();
 		assertTrue(brands.contains(SpaySdk.Brand.VISA));
