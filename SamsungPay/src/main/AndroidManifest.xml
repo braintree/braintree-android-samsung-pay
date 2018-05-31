@@ -1,1 +1,7 @@
-<manifest package="com.braintreepayments.api.samsungpay" />
+<manifest package="com.braintreepayments.api.samsungpay" xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <meta-data android:name="debug_mode" android:value="Y" />
+        <meta-data android:name="spay_debug_api_key" android:value="e0f17c5c31a24c7db255c02f8bbada04" />
+        <meta-data android:name="spay_sdk_api_level" android:value="1.6" />
+    </application>
+</manifest>
