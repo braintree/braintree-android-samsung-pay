@@ -1,7 +1,6 @@
 package com.braintreepayments.api.test;
 
 import com.braintreepayments.api.internal.GraphQLConstants;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -106,7 +105,7 @@ public class TestConfigurationBuilder extends JSONBuilder {
     public TestConfigurationBuilder payWithVenmo(TestVenmoConfigurationBuilder venmoConfigurationBuilder) {
         try {
             put(new JSONObject(venmoConfigurationBuilder.build()));
-        } catch(JSONException ignored) {}
+        } catch (JSONException ignored) {}
         return this;
     }
 
@@ -161,10 +160,7 @@ public class TestConfigurationBuilder extends JSONBuilder {
             Class configuration = Class.forName("com.braintreepayments.api.models.Configuration");
             Method fromJson = configuration.getDeclaredMethod("fromJson", String.class);
             return (T) fromJson.invoke(null, build());
-        } catch (NoSuchMethodException ignored) {}
-        catch (InvocationTargetException ignored) {}
-        catch (IllegalAccessException ignored) {}
-        catch (ClassNotFoundException ignored) {}
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException ignored) {}
 
         return (T) build();
     }

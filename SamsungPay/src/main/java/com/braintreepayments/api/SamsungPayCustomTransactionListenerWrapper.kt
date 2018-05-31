@@ -8,9 +8,11 @@ import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet
 
-internal class SamsungPayCustomTransactionListenerWrapper(val fragment: BraintreeFragment,
-                                                 val paymentManager: PaymentManager,
-                                                 val merchantCallback: SamsungPayCustomTransactionUpdateListener) : PaymentManager.CustomSheetTransactionInfoListener {
+internal class SamsungPayCustomTransactionListenerWrapper(
+    val fragment: BraintreeFragment,
+    val paymentManager: PaymentManager,
+    val merchantCallback: SamsungPayCustomTransactionUpdateListener
+) : PaymentManager.CustomSheetTransactionInfoListener {
 
     override fun onSuccess(p0: CustomSheetPaymentInfo?, p1: String?, p2: Bundle?) {
         TODO("Tokenize") //To change body of created functions use File | Settings | File Templates.

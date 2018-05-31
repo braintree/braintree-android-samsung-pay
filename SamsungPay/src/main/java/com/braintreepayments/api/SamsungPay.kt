@@ -66,11 +66,15 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
  * @param [paymentInfoBuilder] TODO
  * @param [listener] TODO
  */
-fun requestPayment(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.Builder, listener: SamsungPayTransactionUpdateListener) {
+fun requestPayment(
+    fragment: BraintreeFragment,
+    paymentInfoBuilder: PaymentInfo.Builder,
+    listener: SamsungPayTransactionUpdateListener
+) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         paymentInfoBuilder.setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
-                .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
-                .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
+            .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
+            .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
 
         val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
         val paymentInfo = paymentInfoBuilder.build()
@@ -88,16 +92,22 @@ fun requestPayment(fragment: BraintreeFragment, paymentInfoBuilder: PaymentInfo.
  * @param [customSheetPaymentInfoBuilder] TODO
  * @param [listener] TODO
  */
-fun requestPayment(fragment: BraintreeFragment, customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder, listener: SamsungPayCustomTransactionUpdateListener) {
+fun requestPayment(
+    fragment: BraintreeFragment,
+    customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder,
+    listener: SamsungPayCustomTransactionUpdateListener
+) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         customSheetPaymentInfoBuilder.setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
-                .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
-                .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
+            .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
+            .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
 
         val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
 
-        paymentManager.startInAppPayWithCustomSheet(customSheetPaymentInfoBuilder.build(),
-                SamsungPayCustomTransactionListenerWrapper(fragment, paymentManager, listener))
+        paymentManager.startInAppPayWithCustomSheet(
+            customSheetPaymentInfoBuilder.build(),
+            SamsungPayCustomTransactionListenerWrapper(fragment, paymentManager, listener)
+        )
     })
 }
 
@@ -113,13 +123,15 @@ private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<SpaySd
     val samsungAcceptedList = ArrayList<SpaySdk.Brand>()
 
     for (braintreeAcceptedCardBrand in configurationBrands) {
-        samsungAcceptedList.add(when(braintreeAcceptedCardBrand.toLowerCase()) {
-            "visa" -> SpaySdk.Brand.VISA
-            "mastercard" -> SpaySdk.Brand.MASTERCARD
-            "discover" -> SpaySdk.Brand.DISCOVER
-            "american_express" -> SpaySdk.Brand.AMERICANEXPRESS
-            else -> SpaySdk.Brand.UNKNOWN_CARD
-        })
+        samsungAcceptedList.add(
+            when (braintreeAcceptedCardBrand.toLowerCase()) {
+                "visa" -> SpaySdk.Brand.VISA
+                "mastercard" -> SpaySdk.Brand.MASTERCARD
+                "discover" -> SpaySdk.Brand.DISCOVER
+                "american_express" -> SpaySdk.Brand.AMERICANEXPRESS
+                else -> SpaySdk.Brand.UNKNOWN_CARD
+            }
+        )
     }
 
     return samsungAcceptedList
@@ -144,9 +156,11 @@ internal fun getPaymentManager(fragment: BraintreeFragment, info: PartnerInfo): 
     return PaymentManager(fragment.applicationContext, info)
 }
 
-internal fun getSamsungPayTransactionInfoListener(fragment: BraintreeFragment,
-                                                  info: PaymentInfo,
-                                                  manager: PaymentManager,
-                                                  listener: SamsungPayTransactionUpdateListener) : PaymentManager.TransactionInfoListener {
+internal fun getSamsungPayTransactionInfoListener(
+    fragment: BraintreeFragment,
+    info: PaymentInfo,
+    manager: PaymentManager,
+    listener: SamsungPayTransactionUpdateListener
+): PaymentManager.TransactionInfoListener {
     return SamsungPayTransactionListenerWrapper(fragment, info, manager, listener)
 }
