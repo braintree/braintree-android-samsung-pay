@@ -10,9 +10,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="debug_mode" android:value="Y" />
-        <meta-data android:name="spay_debug_api_key" android:value="e0f17c5c31a24c7db255c02f8bbada04" />
-
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
