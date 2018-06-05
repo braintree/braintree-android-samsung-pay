@@ -7,10 +7,12 @@ import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 
-internal class SamsungPayTransactionListenerWrapper(val fragment: BraintreeFragment,
-                                                    val paymentInfo: PaymentInfo,
-                                                    val paymentManager: PaymentManager,
-                                                    val merchantCallback: SamsungPayTransactionUpdateListener) : PaymentManager.TransactionInfoListener {
+internal class SamsungPayTransactionListenerWrapper(
+    val fragment: BraintreeFragment,
+    val paymentInfo: PaymentInfo,
+    val paymentManager: PaymentManager,
+    val merchantCallback: SamsungPayTransactionUpdateListener
+) : PaymentManager.TransactionInfoListener {
 
     override fun onSuccess(response: PaymentInfo?, paymentCredential: String?, extraPaymentData: Bundle?) {
         TODO("Tokenize with braintree, callback with braintreefragment")

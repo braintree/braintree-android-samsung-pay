@@ -1,7 +1,11 @@
 .gradle
 /gradle.properties
 /local.properties
-/.idea
+
+/.idea/*
+!/.idea/codeStyles/Project.xml
+!/.idea/codeStyles/codeStyleConfig.xml
+
 Gemfile.lock
 .DS_Store
 .bundle
