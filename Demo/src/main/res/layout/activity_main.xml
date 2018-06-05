@@ -13,14 +13,6 @@
         android:layout_centerInParent="true">
 
         <Button
-            android:id="@+id/samsung_pay_demo_launch_button_normal_sheet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:enabled="false"
-            android:text="@string/start_samsung_pay_normal"
-            />
-
-        <Button
             android:id="@+id/samsung_pay_demo_launch_button_custom_sheet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

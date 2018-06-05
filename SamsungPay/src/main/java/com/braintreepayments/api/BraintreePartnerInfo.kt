@@ -5,8 +5,8 @@ import com.braintreepayments.api.models.SamsungPayConfiguration
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 
 internal class BraintreePartnerInfo(
-    data: Bundle,
-    val configuration: SamsungPayConfiguration
+    val configuration: SamsungPayConfiguration,
+    data: Bundle
 ) : PartnerInfo(
     configuration.serviceId.let {
         // TODO("Temporarily set the Service ID")

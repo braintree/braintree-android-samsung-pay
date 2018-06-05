@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
 
-    private Button mNormalSheetSamsungPayButton;
     private Button mCustomSheetSamsungPayButton;
     private BraintreeFragment mBraintreeFragment;
 
@@ -41,7 +40,6 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mNormalSheetSamsungPayButton = findViewById(R.id.samsung_pay_demo_launch_button_normal_sheet);
         mCustomSheetSamsungPayButton = findViewById(R.id.samsung_pay_demo_launch_button_custom_sheet);
 
         try {
@@ -54,13 +52,11 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        mNormalSheetSamsungPayButton.setOnClickListener(this);
         mCustomSheetSamsungPayButton.setOnClickListener(this);
 
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<Boolean>() {
             @Override
             public void onResponse(Boolean isReady) {
-                mNormalSheetSamsungPayButton.setEnabled(isReady);
                 mCustomSheetSamsungPayButton.setEnabled(isReady);
             }
         });
@@ -70,53 +66,48 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
-        mNormalSheetSamsungPayButton.setOnClickListener(null);
         mCustomSheetSamsungPayButton.setOnClickListener(null);
     }
 
     @Override
     public void onClick(View v) {
-        if (v == mNormalSheetSamsungPayButton) {
-            SamsungPay.requestPayment(mBraintreeFragment, makeBuilder(), this);
-        } else if (v == mCustomSheetSamsungPayButton) {
-            AddressControl billingAddressControl = new AddressControl("billingAddressId", SheetItemType.BILLING_ADDRESS);
+        AddressControl billingAddressControl = new AddressControl("billingAddressId", SheetItemType.BILLING_ADDRESS);
 
-            billingAddressControl.setAddressTitle("Billing Address [control]");
-            billingAddressControl.setSheetUpdatedListener(new SheetUpdatedListener() {
-                @Override
-                public void onResult(String s, CustomSheet customSheet) {
-                    Log.d("address sheet updated", s);
-                }
-            });
+        billingAddressControl.setAddressTitle("Billing Address [control]");
+        billingAddressControl.setSheetUpdatedListener(new SheetUpdatedListener() {
+            @Override
+            public void onResult(String s, CustomSheet customSheet) {
+                Log.d("address sheet updated", s);
+            }
+        });
 
-            final AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
-            amountBoxControl.addItem("itemId", "Items", 1000, "");
-            amountBoxControl.addItem("taxId", "Tax", 50, "");
-            amountBoxControl.addItem("shippingId", "Shipping", 10, "");
-            amountBoxControl.addItem("interestId", "Interest [ex]", 0, "");
-            amountBoxControl.setAmountTotal(1050 + amountBoxControl.getValue("shippingId") +
-                    amountBoxControl.getValue("interestId"), AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
-            amountBoxControl.addItem(3, "fuelId", "FUEL", 0, "Pending");
+        final AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
+        amountBoxControl.addItem("itemId", "Items", 1000, "");
+        amountBoxControl.addItem("taxId", "Tax", 50, "");
+        amountBoxControl.addItem("shippingId", "Shipping", 10, "");
+        amountBoxControl.addItem("interestId", "Interest [ex]", 0, "");
+        amountBoxControl.setAmountTotal(1050 + amountBoxControl.getValue("shippingId") +
+                amountBoxControl.getValue("interestId"), AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
+        amountBoxControl.addItem(3, "fuelId", "FUEL", 0, "Pending");
 
-            CustomSheet sheet = new CustomSheet();
-            sheet.addControl(billingAddressControl);
-            sheet.addControl(amountBoxControl);
+        CustomSheet sheet = new CustomSheet();
+        sheet.addControl(billingAddressControl);
+        sheet.addControl(amountBoxControl);
 
-            CustomSheetPaymentInfo.Builder customSheetInfo = new CustomSheetPaymentInfo.Builder().setCustomSheet(sheet);
+        CustomSheetPaymentInfo.Builder customSheetInfo = new CustomSheetPaymentInfo.Builder().setCustomSheet(sheet);
 
-            SamsungPay.requestPayment(mBraintreeFragment, customSheetInfo, new SamsungPayCustomTransactionUpdateListener() {
-                @Override
-                public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
-                    amountBoxControl.updateValue("itemId", 1000);
-                    amountBoxControl.updateValue("taxId", 50);
-                    amountBoxControl.updateValue("shippingId", 10);
-                    amountBoxControl.updateValue("interestId", 0);
-                    amountBoxControl.updateValue("fuelId", 10);
+        SamsungPay.requestPayment(mBraintreeFragment, customSheetInfo, new SamsungPayCustomTransactionUpdateListener() {
+            @Override
+            public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
+                amountBoxControl.updateValue("itemId", 1000);
+                amountBoxControl.updateValue("taxId", 50);
+                amountBoxControl.updateValue("shippingId", 10);
+                amountBoxControl.updateValue("interestId", 0);
+                amountBoxControl.updateValue("fuelId", 10);
 
-                    customSheet.updateControl(amountBoxControl);
-                }
-            });
-        }
+                customSheet.updateControl(amountBoxControl);
+            }
+        });
     }
 
     @Nullable

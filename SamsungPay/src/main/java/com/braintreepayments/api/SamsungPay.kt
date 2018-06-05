@@ -7,7 +7,6 @@ import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.BraintreeErrorListener
 import com.braintreepayments.api.interfaces.BraintreeResponseListener
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
-import com.braintreepayments.api.interfaces.SamsungPayTransactionUpdateListener
 import com.braintreepayments.api.internal.ClassHelper
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
@@ -15,17 +14,16 @@ import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk.*
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
-import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import java.util.*
 
 /**
- * Call isReadyToPay before starting your SamsungPay flow. IsReadyToPay will call you back with the
- * status of Samsung Pay. If the SamsungPay jar has not been included, or the status of
+ * Call isReadyToPay before starting your Samsung Pay flow. isReadyToPay will call you back with the
+ * status of Samsung Pay. If the Samsung Pay jar has not been included, or if the status of
  * Samsung Pay is anything but [SamsungPay.SPAY_READY], the listener will be called back
- * with a value of false. If the SamsungPay callback fails and returns an error, that error
- * will be posted to the [BraintreeErrorListener] callback attached to the instance of [BraintreeFragment]
- * passed in here.
+ * with a value of false. If the Samsung Pay callback fails and returns an error, that error
+ * will be posted to the [BraintreeErrorListener] callback attached to the instance of
+ * [BraintreeFragment] passed in here.
  *
  * TODO(Modify this s.t. the response listener also passes the reason for readiness, so that the merchant can take available actions)
  *
@@ -59,33 +57,7 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
 }
 
 /**
- * requestPayment takes a PaymentInfo.Builder and starts intitiates the SamsungPay flow
- * with the normal UI provided by SamsungPay.
- *
- * @param [fragment] TODO
- * @param [paymentInfoBuilder] TODO
- * @param [listener] TODO
- */
-fun requestPayment(
-    fragment: BraintreeFragment,
-    paymentInfoBuilder: PaymentInfo.Builder,
-    listener: SamsungPayTransactionUpdateListener
-) {
-    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
-        paymentInfoBuilder.setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
-            .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
-            .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
-
-        val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
-        val paymentInfo = paymentInfoBuilder.build()
-        val callbacks = getSamsungPayTransactionInfoListener(fragment, paymentInfo, paymentManager, listener)
-
-        paymentManager.startInAppPay(paymentInfoBuilder.build(), callbacks)
-    })
-}
-
-/**
- * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the SamsungPay flow
+ * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the Samsung Pay flow
  * with some custom UI provided by you.
  *
  * @param [fragment] TODO
@@ -112,8 +84,8 @@ fun requestPayment(
 }
 
 /**
- * @return true if the SamsungPay SDK is available in the classpath, i.e., you have included
- * the SamsungPay jar in your declared app dependencies.
+ * @return true if the SamsungPay SDK is available in the classpath, i.e. you have included
+ * the Samsung Pay jar file in your declared app dependencies.
  */
 fun isSamsungPayAvailable(): Boolean {
     return ClassHelper.isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
@@ -144,7 +116,7 @@ internal fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResp
         val bundle = Bundle()
         bundle.putString(SamsungPay.PARTNER_SERVICE_TYPE, SpaySdk.ServiceType.INAPP_PAYMENT.toString())
 
-        listener.onResponse(BraintreePartnerInfo(bundle, samsungPayConfiguration))
+        listener.onResponse(BraintreePartnerInfo(samsungPayConfiguration, bundle))
     }
 }
 
@@ -154,13 +126,4 @@ internal fun getSamsungPay(fragment: BraintreeFragment, info: PartnerInfo): Sams
 
 internal fun getPaymentManager(fragment: BraintreeFragment, info: PartnerInfo): PaymentManager {
     return PaymentManager(fragment.applicationContext, info)
-}
-
-internal fun getSamsungPayTransactionInfoListener(
-    fragment: BraintreeFragment,
-    info: PaymentInfo,
-    manager: PaymentManager,
-    listener: SamsungPayTransactionUpdateListener
-): PaymentManager.TransactionInfoListener {
-    return SamsungPayTransactionListenerWrapper(fragment, info, manager, listener)
 }
