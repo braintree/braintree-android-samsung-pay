@@ -71,6 +71,29 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClick(View v) {
+        SamsungPay.createPaymentInfo(mBraintreeFragment, new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
+            @Override
+            public void onResponse(CustomSheetPaymentInfo.Builder builder) {
+                builder.setCustomSheet(getCustomSheet());
+
+                SamsungPay.requestPayment(mBraintreeFragment, builder.build(), new SamsungPayCustomTransactionUpdateListener() {
+                    @Override
+                    public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
+                        AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
+                        amountBoxControl.updateValue("itemId", 1000);
+                        amountBoxControl.updateValue("taxId", 50);
+                        amountBoxControl.updateValue("shippingId", 10);
+                        amountBoxControl.updateValue("interestId", 0);
+                        amountBoxControl.updateValue("fuelId", 10);
+
+                        customSheet.updateControl(amountBoxControl);
+                    }
+                });
+            }
+        });
+    }
+
+    private CustomSheet getCustomSheet() {
         AddressControl billingAddressControl = new AddressControl("billingAddressId", SheetItemType.BILLING_ADDRESS);
 
         billingAddressControl.setAddressTitle("Billing Address [control]");
@@ -93,21 +116,7 @@ public class MainActivity extends AppCompatActivity
         CustomSheet sheet = new CustomSheet();
         sheet.addControl(billingAddressControl);
         sheet.addControl(amountBoxControl);
-
-        CustomSheetPaymentInfo.Builder customSheetInfo = new CustomSheetPaymentInfo.Builder().setCustomSheet(sheet);
-
-        SamsungPay.requestPayment(mBraintreeFragment, customSheetInfo, new SamsungPayCustomTransactionUpdateListener() {
-            @Override
-            public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
-                amountBoxControl.updateValue("itemId", 1000);
-                amountBoxControl.updateValue("taxId", 50);
-                amountBoxControl.updateValue("shippingId", 10);
-                amountBoxControl.updateValue("interestId", 0);
-                amountBoxControl.updateValue("fuelId", 10);
-
-                customSheet.updateControl(amountBoxControl);
-            }
-        });
+        return sheet;
     }
 
     @Nullable
@@ -120,10 +129,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public PaymentInfo.Amount onCardInfoUpdated(@NonNull CardInfo cardInfo) {
         return null;
-    }
-
-    private PaymentInfo.Builder makeBuilder() {
-        return new PaymentInfo.Builder().setAmount(new PaymentInfo.Amount.Builder().setCurrencyCode("USD").setItemTotalPrice("1").setShippingPrice("0").setTax("0").setTotalPrice("1").build());
     }
 
     @Override

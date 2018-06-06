@@ -235,21 +235,18 @@ public class SamsungPayUnitTest {
 
     @Test
     public void requestPayment_startsInAppPay() throws NoSuchMethodException {
-        CustomSheetPaymentInfo.Builder customSheetPaymentInfoBuilder = getCustomSheetPaymentInfoBuilder();
-
         PaymentManager mockedManager = mock(PaymentManager.class);
-
         stubPaymentManager(mockedManager);
+        CustomSheetPaymentInfo paymentInfo = getCustomSheetPaymentInfo();
 
-        SamsungPay.requestPayment(mBraintreeFragment, customSheetPaymentInfoBuilder, mock(SamsungPayCustomTransactionUpdateListener.class));
+        SamsungPay.requestPayment(mBraintreeFragment, paymentInfo, mock(SamsungPayCustomTransactionUpdateListener.class));
 
-        verify(mockedManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class), any(PaymentManager.CustomSheetTransactionInfoListener.class));
+        verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
     }
 
     @Test
     public void requestPayment_onCardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
-
         PowerMockito.doNothing().when(mockedPaymentManager)
                 .startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                         any(PaymentManager.CustomSheetTransactionInfoListener.class));
@@ -258,7 +255,8 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -280,7 +278,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -307,7 +305,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfoBuilder(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -360,7 +358,7 @@ public class SamsungPayUnitTest {
         });
     }
 
-    private CustomSheetPaymentInfo.Builder getCustomSheetPaymentInfoBuilder() {
+    private CustomSheetPaymentInfo getCustomSheetPaymentInfo() {
         final AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
         amountBoxControl.addItem("itemId", "Items", 1000, "");
         amountBoxControl.addItem("taxId", "Tax", 50, "");
@@ -373,6 +371,7 @@ public class SamsungPayUnitTest {
         sheet.addControl(amountBoxControl);
 
         return new CustomSheetPaymentInfo.Builder()
-                .setCustomSheet(sheet);
+                .setCustomSheet(sheet)
+                .build();
     }
 }

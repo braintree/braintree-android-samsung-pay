@@ -86,14 +86,14 @@ fun createPaymentInfo(
  */
 fun requestPayment(
     fragment: BraintreeFragment,
-    customSheetPaymentInfoBuilder: CustomSheetPaymentInfo.Builder,
+    customSheetPaymentInfo: CustomSheetPaymentInfo,
     listener: SamsungPayCustomTransactionUpdateListener
 ) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
 
         paymentManager.startInAppPayWithCustomSheet(
-            customSheetPaymentInfoBuilder.build(),
+            customSheetPaymentInfo,
             SamsungPayCustomTransactionListenerWrapper(fragment, paymentManager, listener)
         )
     })
