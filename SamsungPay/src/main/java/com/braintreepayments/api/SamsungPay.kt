@@ -57,6 +57,26 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
 }
 
 /**
+ * Creates a {@link CustomSheetPaymentInfo.Builder} with the merchant ID, merchant name, and allowed
+ * card brands populated by the Braintree merchant account configuration.
+ * @param fragment - {@link BraintreeFragment}
+ * @param listener {@link BraintreeResponseListener<CustomSheetPaymentInfo.Builder>} - listens for
+ * the Braintree flavored {@link CustomSheetPaymentInfo.Builder}.
+ */
+fun createPaymentInfo(
+    fragment: BraintreeFragment,
+    listener: BraintreeResponseListener<CustomSheetPaymentInfo.Builder>
+) {
+    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
+        var paymentInfo = CustomSheetPaymentInfo.Builder()
+                .setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
+                .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
+                .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
+        listener.onResponse(paymentInfo)
+    })
+}
+
+/**
  * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the Samsung Pay flow
  * with some custom UI provided by you.
  *
@@ -70,10 +90,6 @@ fun requestPayment(
     listener: SamsungPayCustomTransactionUpdateListener
 ) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
-        customSheetPaymentInfoBuilder.setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
-            .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
-            .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
-
         val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
 
         paymentManager.startInAppPayWithCustomSheet(

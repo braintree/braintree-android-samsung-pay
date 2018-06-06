@@ -210,7 +210,31 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void startSamsungPay_setsMerchantValues() throws NoSuchMethodException {
+    public void createPaymentInfo_setsMerchantValues() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        SamsungPay.createPaymentInfo(mBraintreeFragment, new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
+            @Override
+            public void onResponse(CustomSheetPaymentInfo.Builder builder) {
+                CustomSheetPaymentInfo paymentInfo = builder.build();
+                assertEquals("example-samsung-authorization", paymentInfo.getMerchantId());
+                assertEquals("some example merchant", paymentInfo.getMerchantName());
+
+                List<SpaySdk.Brand> brands = paymentInfo.getAllowedCardBrands();
+                assertTrue(brands.contains(SpaySdk.Brand.VISA));
+                assertTrue(brands.contains(SpaySdk.Brand.DISCOVER));
+                assertTrue(brands.contains(SpaySdk.Brand.MASTERCARD));
+                assertTrue(brands.contains(SpaySdk.Brand.AMERICANEXPRESS));
+
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+    }
+
+    @Test
+    public void requestPayment_startsInAppPay() throws NoSuchMethodException {
         CustomSheetPaymentInfo.Builder customSheetPaymentInfoBuilder = getCustomSheetPaymentInfoBuilder();
 
         PaymentManager mockedManager = mock(PaymentManager.class);
@@ -219,20 +243,7 @@ public class SamsungPayUnitTest {
 
         SamsungPay.requestPayment(mBraintreeFragment, customSheetPaymentInfoBuilder, mock(SamsungPayCustomTransactionUpdateListener.class));
 
-        ArgumentCaptor<CustomSheetPaymentInfo> customSheetInfoCaptor = ArgumentCaptor.forClass(CustomSheetPaymentInfo.class);
-
-        verify(mockedManager).startInAppPayWithCustomSheet(customSheetInfoCaptor.capture(), any(PaymentManager.CustomSheetTransactionInfoListener.class));
-
-        CustomSheetPaymentInfo infoArgument = customSheetInfoCaptor.getValue();
-
-        assertEquals("example-samsung-authorization", infoArgument.getMerchantId());
-        assertEquals("some example merchant", infoArgument.getMerchantName());
-
-        List<SpaySdk.Brand> brands = infoArgument.getAllowedCardBrands();
-        assertTrue(brands.contains(SpaySdk.Brand.VISA));
-        assertTrue(brands.contains(SpaySdk.Brand.DISCOVER));
-        assertTrue(brands.contains(SpaySdk.Brand.MASTERCARD));
-        assertTrue(brands.contains(SpaySdk.Brand.AMERICANEXPRESS));
+        verify(mockedManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class), any(PaymentManager.CustomSheetTransactionInfoListener.class));
     }
 
     @Test
