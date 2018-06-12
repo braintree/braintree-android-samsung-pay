@@ -8,6 +8,7 @@ import com.braintreepayments.api.interfaces.BraintreeErrorListener
 import com.braintreepayments.api.interfaces.BraintreeResponseListener
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
 import com.braintreepayments.api.internal.ClassHelper
+import com.braintreepayments.api.models.MetadataBuilder
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
@@ -15,6 +16,7 @@ import com.samsung.android.sdk.samsungpay.v2.SpaySdk.*
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
+import org.json.JSONObject
 import java.util.*
 
 /**
@@ -127,12 +129,20 @@ private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<SpaySd
 
 internal fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResponseListener<BraintreePartnerInfo>) {
     fragment.waitForConfiguration { configuration ->
-        val samsungPayConfiguration = configuration.samsungPay
-
         val bundle = Bundle()
-        bundle.putString(SamsungPay.PARTNER_SERVICE_TYPE, SpaySdk.ServiceType.INAPP_PAYMENT.toString())
 
-        listener.onResponse(BraintreePartnerInfo(samsungPayConfiguration, bundle))
+        bundle.putString(SpaySdk.PARTNER_SERVICE_TYPE, SpaySdk.ServiceType.INAPP_PAYMENT.toString())
+        bundle.putBoolean(PaymentManager.EXTRA_KEY_TEST_MODE, true)
+
+        val clientSdkMetadataJson = JSONObject()
+        clientSdkMetadataJson.put("clientSdkMetadata", MetadataBuilder()
+                .integration(fragment.integrationType)
+                .sessionId(fragment.sessionId)
+                .version()
+                .build())
+        bundle.putString("additionalData", clientSdkMetadataJson.toString())
+
+        listener.onResponse(BraintreePartnerInfo(configuration.samsungPay, bundle))
     }
 }
 

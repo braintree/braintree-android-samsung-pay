@@ -8,14 +8,12 @@ import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.BraintreeErrorListener;
 import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
-import com.braintreepayments.api.interfaces.SamsungPayTransactionUpdateListener;
 import com.braintreepayments.api.internal.ClassHelper;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo;
-import com.samsung.android.sdk.samsungpay.v2.payment.PaymentInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountBoxControl;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountConstants;
@@ -245,6 +243,16 @@ public class SamsungPayUnitTest {
     }
 
     @Test
+    public void requestPayment_usesPaymentManagerWithInAppPartnerServiceType() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void requestPayment_usesPaymentManagerWithClientSdkMetadata() {
+        // TODO
+    }
+
+    @Test
     public void requestPayment_onCardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
         PowerMockito.doNothing().when(mockedPaymentManager)
@@ -348,14 +356,7 @@ public class SamsungPayUnitTest {
     }
 
     private void stubPaymentManager(final PaymentManager mockedPaymentManager) throws NoSuchMethodException {
-        Method getPaymentManager = SamsungPay.class.getDeclaredMethod("getPaymentManager", BraintreeFragment.class, PartnerInfo.class);
-
-        PowerMockito.replace(getPaymentManager).with(new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) {
-                return mockedPaymentManager;
-            }
-        });
+        stub(method(SamsungPay.class, "getPaymentManager")).toReturn(mockedPaymentManager);
     }
 
     private CustomSheetPaymentInfo getCustomSheetPaymentInfo() {
