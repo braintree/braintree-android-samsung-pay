@@ -9,6 +9,7 @@ import com.braintreepayments.api.interfaces.BraintreeErrorListener;
 import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.braintreepayments.api.internal.ClassHelper;
+import com.braintreepayments.api.models.SamsungPayNonce;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
@@ -37,6 +38,9 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import static com.braintreepayments.api.models.BinData.NO;
+import static com.braintreepayments.api.models.BinData.UNKNOWN;
+import static com.braintreepayments.api.models.BinData.YES;
 import static com.braintreepayments.api.test.FixturesHelper.stringFromFixture;
 import static junit.framework.Assert.*;
 import static org.mockito.Matchers.any;
@@ -244,7 +248,6 @@ public class SamsungPayUnitTest {
 
     @Test
     public void requestPayment_usesPaymentManagerWithInAppPartnerServiceType() throws Exception {
-        // TODO
     }
 
     @Test
@@ -326,6 +329,48 @@ public class SamsungPayUnitTest {
         assertEquals(SpaySdk.ERROR_NO_NETWORK, ((SamsungPayException) capturedException).getCode());
         assertNull(((SamsungPayException) capturedException).getExtras());
     }
+
+    @Test
+    public void requestPayment_onSuccess_postsPaymentMethodNonce() throws NoSuchMethodException {
+        PaymentManager mockedPaymentManager = mock(PaymentManager.class);
+
+        PowerMockito.doNothing().when(mockedPaymentManager)
+                .startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
+                        any(PaymentManager.CustomSheetTransactionInfoListener.class));
+        stubPaymentManager(mockedPaymentManager);
+
+        ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
+        ArgumentCaptor<SamsungPayNonce> paymentMethodNonceCaptor = ArgumentCaptor.forClass(SamsungPayNonce.class);
+        SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
+
+        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
+                listenerCaptor.capture());
+
+        listenerCaptor.getValue().onSuccess(null, stringFromFixture("payment_methods/samsung_pay_response.json"), null);
+        verify(mBraintreeFragment).postCallback(paymentMethodNonceCaptor.capture());
+
+        SamsungPayNonce nonce = paymentMethodNonceCaptor.getValue();
+
+        assertTrue(nonce instanceof SamsungPayNonce);
+        assertEquals("Samsung Pay", nonce.getTypeLabel());
+        assertEquals("tokensam_bf_v8s9hv_2htw4m_nh4f45_y3hsft_wty", nonce.getNonce());
+        assertEquals("Mastercard", nonce.getCardType());
+        assertEquals("1798", nonce.getSourceCardLast4());
+        assertEquals("ending in 1798", nonce.getDescription());
+
+        assertNotNull(nonce.getBinData());
+        assertEquals(UNKNOWN, nonce.getBinData().getPrepaid());
+        assertEquals(YES, nonce.getBinData().getHealthcare());
+        assertEquals(NO, nonce.getBinData().getDebit());
+        assertEquals(UNKNOWN, nonce.getBinData().getDurbinRegulated());
+        assertEquals(UNKNOWN, nonce.getBinData().getCommercial());
+        assertEquals(UNKNOWN, nonce.getBinData().getPayroll());
+        assertEquals(UNKNOWN, nonce.getBinData().getIssuingBank());
+        assertEquals("US", nonce.getBinData().getCountryOfIssuance());
+        assertEquals("123", nonce.getBinData().getProductId());
+    }
+
 
     private void stubSamsungPayStatus(final int status) throws NoSuchMethodException {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);

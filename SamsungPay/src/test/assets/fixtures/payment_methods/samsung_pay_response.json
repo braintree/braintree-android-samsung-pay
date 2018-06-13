@@ -1,0 +1,16 @@
+{
+  "data":"{\"extensions\":{\"requestId\":\"b999530e-a57f-4376-8937-3cb8854a8d31\"},\"data\":{\"tokenizeSamsungPayCard\":{\"singleUseToken\":{\"id\":\"tokensam_bf_v8s9hv_2htw4m_nh4f45_y3hsft_wty\",\"details\":{\"brand\":\"Mastercard\",\"brandCode\":\"MASTERCARD\",\"sourceCardLast4\":\"1798\",\"binData\":{\"prepaid\":\"UNKNOWN\",\"healthcare\":\"YES\",\"debit\":\"NO\",\"durbinRegulated\":\"UNKNOWN\",\"commercial\":\"UNKNOWN\",\"payroll\":\"UNKNOWN\",\"issuingBank\":null,\"countryOfIssuance\":\"US\",\"productId\":\"123\"}}}}}}",
+  "reference":"tokensam_bf_v8s9hv_2htw4m_nh4f45_y3hsft_wty",
+  "status":"AUTHORIZED",
+  "payment_last4_dpan":"1798",
+  "payment_last4_fpan":"1470",
+  "payment_card_brand":"MC",
+  "payment_currency_type":"USD",
+  "payment_shipping_address":{
+    "shipping":{
+
+    },
+    "email":""
+  },
+  "payment_shipping_method":""
+}

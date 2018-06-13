@@ -3,6 +3,7 @@ package com.braintreepayments.api
 import android.os.Bundle
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
+import com.braintreepayments.api.models.SamsungPayNonce
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
@@ -15,7 +16,9 @@ internal class SamsungPayCustomTransactionListenerWrapper(
 ) : PaymentManager.CustomSheetTransactionInfoListener {
 
     override fun onSuccess(p0: CustomSheetPaymentInfo?, p1: String?, p2: Bundle?) {
-        TODO("Tokenize") //To change body of created functions use File | Settings | File Templates.
+        if (p1 != null) {
+            fragment.postCallback(SamsungPayNonce.fromPaymentData(p1))
+        }
     }
 
     override fun onFailure(errorCode: Int, extras: Bundle?) {
