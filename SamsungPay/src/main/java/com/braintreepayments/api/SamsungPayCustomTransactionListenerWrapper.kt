@@ -15,9 +15,9 @@ internal class SamsungPayCustomTransactionListenerWrapper(
     val merchantCallback: SamsungPayCustomTransactionUpdateListener
 ) : PaymentManager.CustomSheetTransactionInfoListener {
 
-    override fun onSuccess(p0: CustomSheetPaymentInfo?, p1: String?, p2: Bundle?) {
-        if (p1 != null) {
-            fragment.postCallback(SamsungPayNonce.fromPaymentData(p1))
+    override fun onSuccess(response: CustomSheetPaymentInfo?, paymentCredential: String?, extraPaymentData: Bundle?) {
+        if (paymentCredential != null) {
+            fragment.postCallback(SamsungPayNonce.fromPaymentData(paymentCredential))
         }
     }
 

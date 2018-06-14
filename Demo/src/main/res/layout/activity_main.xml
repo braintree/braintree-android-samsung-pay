@@ -10,7 +10,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_centerInParent="true">
+        android:layout_centerInParent="true"
+        android:id="@+id/linearLayout">
 
         <Button
             android:id="@+id/samsung_pay_demo_launch_button_custom_sheet"
@@ -20,5 +21,18 @@
             android:text="@string/start_samsung_pay_custom"
             />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/nonce_details"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/linearLayout"
+        android:layout_alignLeft="@+id/linearLayout"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/linearLayout"
+        android:layout_alignStart="@+id/linearLayout"
+        android:layout_below="@+id/linearLayout"
+        android:layout_marginTop="21dp"
+        android:text="" />
 
 </RelativeLayout>
