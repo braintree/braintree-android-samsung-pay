@@ -11,8 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.braintreepayments.api.BraintreeFragment;
-import com.braintreepayments.api.SamsungPay;
+import com.braintreepayments.api.*;
 import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.BraintreeErrorListener;
@@ -71,10 +70,27 @@ public class MainActivity extends AppCompatActivity
 
         mCustomSheetSamsungPayButton.setOnClickListener(this);
 
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<Boolean>() {
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
-            public void onResponse(Boolean isReady) {
-                mCustomSheetSamsungPayButton.setEnabled(isReady);
+            public void onResponse(SamsungPayAvailability availability) {
+                switch (availability.status()) {
+                    case READY:
+                        mCustomSheetSamsungPayButton.setEnabled(true);
+                        break;
+                    case NOT_READY:
+                        SamsungPayErrorReason reason = availability.errorReason();
+                        if (reason == SamsungPayErrorReason.NEED_TO_UPDATE_SPAY_APP) {
+                            SamsungPay.goToUpdatePage(mBraintreeFragment);
+                        } else if (reason == SamsungPayErrorReason.SETUP_NOT_COMPLETED) {
+                            SamsungPay.activateSamsungPay(mBraintreeFragment);
+                        }
+                        showDialog("Extra setup required...");
+                        break;
+                    case NOT_SUPPORTED:
+                        showDialog("Samsung Pay is not supported");
+                        mCustomSheetSamsungPayButton.setEnabled(false);
+                        break;
+                }
             }
         });
     }

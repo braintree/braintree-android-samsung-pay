@@ -32,6 +32,7 @@ enum class SamsungPayStatus(val status: Int) {
 enum class SamsungPayErrorReason(val reason: Int) {
     SETUP_NOT_COMPLETED(ERROR_SPAY_SETUP_NOT_COMPLETED),
     NEED_TO_UPDATE_SPAY_APP(ERROR_SPAY_APP_NEED_TO_UPDATE),
+    NO_SUPPORTED_CARDS_IN_WALLET(-10000),
     UNKNOWN(0);
 
     companion object {
@@ -48,6 +49,22 @@ class SamsungPayAvailability(private val status: Int, private val bundle: Bundle
         val errorIndex = bundle.getInt(SamsungPay.EXTRA_ERROR_REASON)
         return SamsungPayErrorReason.valueOf(errorIndex) ?: SamsungPayErrorReason.UNKNOWN
     }
+}
+
+fun goToUpdatePage(fragment: BraintreeFragment) {
+    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
+        val samsungPay = getSamsungPay(fragment, braintreePartnerInfo)
+
+        samsungPay.goToUpdatePage()
+    })
+}
+
+fun activateSamsungPay(fragment: BraintreeFragment) {
+    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
+        val samsungPay = getSamsungPay(fragment, braintreePartnerInfo)
+
+        samsungPay.activateSamsungPay()
+    })
 }
 
 /**

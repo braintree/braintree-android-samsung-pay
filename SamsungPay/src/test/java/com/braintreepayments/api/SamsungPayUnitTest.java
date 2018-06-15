@@ -426,6 +426,25 @@ public class SamsungPayUnitTest {
         assertEquals("123", nonce.getBinData().getProductId());
     }
 
+    @Test
+    public void goToUpdatePage_callsGoToUpdatePage() throws NoSuchMethodException {
+        final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
+        stubSamsungPay(mockSamsungPay);
+
+        SamsungPay.goToUpdatePage(mBraintreeFragment);
+
+        verify(mockSamsungPay).goToUpdatePage();
+    }
+
+    @Test
+    public void activateSamsungPay_callsActivateSamsungPay() throws NoSuchMethodException {
+        final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
+        stubSamsungPay(mockSamsungPay);
+
+        SamsungPay.activateSamsungPay(mBraintreeFragment);
+
+        verify(mockSamsungPay).activateSamsungPay();
+    }
 
     private void stubSamsungPayStatus(final int status) throws NoSuchMethodException {
         stubSamsungPayStatus(status, -10000);
