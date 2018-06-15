@@ -19,10 +19,41 @@ import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import org.json.JSONObject
 import java.util.*
 
+enum class SamsungPayStatus(val status: Int) {
+    READY(SPAY_READY),
+    NOT_READY(SPAY_NOT_READY),
+    NOT_SUPPORTED(SPAY_NOT_SUPPORTED);
+
+    companion object {
+        fun valueOf(status: Int): SamsungPayStatus? = SamsungPayStatus.values().find { it.status == status }
+    }
+}
+
+enum class SamsungPayErrorReason(val reason: Int) {
+    SETUP_NOT_COMPLETED(ERROR_SPAY_SETUP_NOT_COMPLETED),
+    NEED_TO_UPDATE_SPAY_APP(ERROR_SPAY_APP_NEED_TO_UPDATE),
+    UNKNOWN(0);
+
+    companion object {
+        fun valueOf(reason: Int): SamsungPayErrorReason? = SamsungPayErrorReason.values().find { it.reason == reason }
+    }
+}
+
+class SamsungPayAvailability(private val status: Int, private val bundle: Bundle) {
+    fun status(): SamsungPayStatus {
+        return SamsungPayStatus.valueOf(status) ?: SamsungPayStatus.NOT_SUPPORTED
+    }
+
+    fun errorReason(): SamsungPayErrorReason {
+        val errorIndex = bundle.getInt(SamsungPay.EXTRA_ERROR_REASON)
+        return SamsungPayErrorReason.valueOf(errorIndex) ?: SamsungPayErrorReason.UNKNOWN
+    }
+}
+
 /**
  * Call isReadyToPay before starting your Samsung Pay flow. isReadyToPay will call you back with the
  * status of Samsung Pay. If the Samsung Pay jar has not been included, or if the status of
- * Samsung Pay is anything but [SamsungPay.SPAY_READY], the listener will be called back
+ * Samsung Pay is anything but [SamsungPayStatus.SPAY_READY], the listener will be called back
  * with a value of false. If the Samsung Pay callback fails and returns an error, that error
  * will be posted to the [BraintreeErrorListener] callback attached to the instance of
  * [BraintreeFragment] passed in here.
@@ -32,9 +63,9 @@ import java.util.*
  * @param [fragment] TODO
  * @param [listener] TODO
  */
-fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListener<Boolean>) {
+fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListener<SamsungPayAvailability>) {
     if (!isSamsungPayAvailable()) {
-        listener.onResponse(false)
+        listener.onResponse(SamsungPayAvailability(SPAY_NOT_SUPPORTED, Bundle()))
         return
     }
 
@@ -43,15 +74,12 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
 
         samsungPay.getSamsungPayStatus(object : StatusListener {
             override fun onSuccess(status: Int, bundle: Bundle) {
-                when (status) {
-                    SPAY_NOT_SUPPORTED,
-                    SPAY_NOT_READY -> listener.onResponse(false)
-                    SPAY_READY -> listener.onResponse(true)
-                }
+                listener.onResponse(SamsungPayAvailability(status, bundle))
             }
 
             override fun onFail(errorCode: Int, bundle: Bundle) {
-                listener.onResponse(false)
+                // TODO: is it even necessary to post a response, given that we post the exception?
+                listener.onResponse(SamsungPayAvailability(SPAY_NOT_SUPPORTED, bundle))
                 fragment.postCallback(SamsungPayException(errorCode, bundle))
             }
         })

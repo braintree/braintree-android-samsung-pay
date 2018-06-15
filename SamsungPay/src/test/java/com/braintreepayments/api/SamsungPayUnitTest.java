@@ -100,18 +100,19 @@ public class SamsungPayUnitTest {
         });
     }
 
+
     @Test(timeout = 1000)
     @SuppressWarnings("unchecked")
-    public void isReadyToPay_whenSDKNotAvailable_returnsFalse() {
+    public void isReadyToPay_whenSDKNotAvailable_returnsStatusNotSupported() {
         mockStatic(ClassHelper.class);
         when(ClassHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<Boolean>() {
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
-            public void onResponse(Boolean aBoolean) {
-                assertFalse(aBoolean);
+            public void onResponse(SamsungPayAvailability availability) {
+                assertEquals(SamsungPayStatus.NOT_SUPPORTED, availability.status());
 
                 latch.countDown();
             }
@@ -119,15 +120,15 @@ public class SamsungPayUnitTest {
     }
 
     @Test(timeout = 1000)
-    public void isReadyToPay_whenSpayStatusIsNotSupported_returnsFalse() throws Exception {
-        stubSamsungPayStatus(com.samsung.android.sdk.samsungpay.v2.SamsungPay.SPAY_NOT_SUPPORTED);
+    public void isReadyToPay_whenSpayStatusIsNotSupported_returnsStatusNotSupported() throws Exception {
+        stubSamsungPayStatus(SpaySdk.SPAY_NOT_SUPPORTED);
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<Boolean>() {
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
-            public void onResponse(Boolean isReadyToPay) {
-                assertFalse(isReadyToPay);
+            public void onResponse(SamsungPayAvailability availability) {
+                assertEquals(SamsungPayStatus.NOT_SUPPORTED, availability.status());
 
                 latch.countDown();
             }
@@ -137,15 +138,15 @@ public class SamsungPayUnitTest {
     }
 
     @Test(timeout = 1000)
-    public void isReadyToPay_whenSpayStatusIsNotReady_returnsFalse() throws NoSuchMethodException, InterruptedException {
-        stubSamsungPayStatus(com.samsung.android.sdk.samsungpay.v2.SamsungPay.SPAY_NOT_READY);
+    public void isReadyToPay_whenSpayStatusIsNotReady_returnsStatusNotReady() throws NoSuchMethodException, InterruptedException {
+        stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY);
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<Boolean>() {
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
-            public void onResponse(Boolean isReadyToPay) {
-                assertFalse(isReadyToPay);
+            public void onResponse(SamsungPayAvailability availability) {
+                assertEquals(SamsungPayStatus.NOT_READY, availability.status());
 
                 latch.countDown();
             }
@@ -155,15 +156,15 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void isReadyToPay_whenSpayStatusIsReady_returnsTrue() throws NoSuchMethodException, InterruptedException {
-        stubSamsungPayStatus(com.samsung.android.sdk.samsungpay.v2.SamsungPay.SPAY_READY);
+    public void isReadyToPay_whenSpayErrorReasonIsSetupNotCompleted_returnsErrorReasonSetupNotCompleted() throws NoSuchMethodException, InterruptedException {
+        stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY, SpaySdk.ERROR_SPAY_SETUP_NOT_COMPLETED);
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<Boolean>() {
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
-            public void onResponse(Boolean isReadyToPay) {
-                assertTrue(isReadyToPay);
+            public void onResponse(SamsungPayAvailability availability) {
+                assertEquals(SamsungPayErrorReason.SETUP_NOT_COMPLETED, availability.errorReason());
 
                 latch.countDown();
             }
@@ -173,7 +174,61 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void isReadyToPay_onFailure_postsException() throws InterruptedException, NoSuchMethodException {
+    public void isReadyToPay_whenSpayErrorReasonIsSpayAppNeedToUpdate_returnsErrorReasonSpayAppNeedToUpdate() throws NoSuchMethodException, InterruptedException {
+        stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY, SpaySdk.ERROR_SPAY_APP_NEED_TO_UPDATE);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
+            @Override
+            public void onResponse(SamsungPayAvailability availability) {
+                assertEquals(SamsungPayErrorReason.NEED_TO_UPDATE_SPAY_APP, availability.errorReason());
+
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+    }
+
+    @Test
+    public void isReadyToPay_whenSpayErrorReasonNotGiven_returnsErrorReasonUnknown() throws NoSuchMethodException, InterruptedException {
+        stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
+            @Override
+            public void onResponse(SamsungPayAvailability availability) {
+                assertEquals(SamsungPayErrorReason.UNKNOWN, availability.errorReason());
+
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+    }
+
+    @Test
+    public void isReadyToPay_whenSpayStatusIsReady_returnsStatusReady() throws NoSuchMethodException, InterruptedException {
+        stubSamsungPayStatus(SpaySdk.SPAY_READY);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
+            @Override
+            public void onResponse(SamsungPayAvailability availability) {
+                assertEquals(SamsungPayStatus.READY, availability.status());
+
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+    }
+
+    @Test
+    public void isReadyToPay_onFailure_postsExceptionAndReturnsAvailability() throws InterruptedException, NoSuchMethodException {
         com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
         doAnswer(new Answer<Void>() {
             @Override
@@ -190,10 +245,10 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<Boolean>() {
+        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
-            public void onResponse(Boolean aBoolean) {
-                assertFalse(aBoolean);
+            public void onResponse(SamsungPayAvailability availability) {
+                // TODO: do we want to assert anything on availability?
                 latch.countDown();
             }
         });
@@ -207,7 +262,7 @@ public class SamsungPayUnitTest {
         Exception capturedException = exceptionCaptor.getValue();
 
         assertTrue(capturedException instanceof SamsungPayException);
-        assertEquals(com.samsung.android.sdk.samsungpay.v2.SamsungPay.ERROR_DEVICE_NOT_SAMSUNG, ((SamsungPayException) capturedException).getCode());
+        assertEquals(SpaySdk.ERROR_DEVICE_NOT_SAMSUNG, ((SamsungPayException) capturedException).getCode());
         assertNotNull(((SamsungPayException) capturedException).getExtras());
     }
 
@@ -245,16 +300,16 @@ public class SamsungPayUnitTest {
 
         verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
     }
-
-    @Test
-    public void requestPayment_usesPaymentManagerWithInAppPartnerServiceType() throws Exception {
-    }
-
-    @Test
-    public void requestPayment_usesPaymentManagerWithClientSdkMetadata() {
-        // TODO
-    }
-
+//
+//    @Test
+//    public void requestPayment_usesPaymentManagerWithInAppPartnerServiceType() throws Exception {
+//    }
+//
+//    @Test
+//    public void requestPayment_usesPaymentManagerWithClientSdkMetadata() {
+//        // TODO
+//    }
+//
     @Test
     public void requestPayment_onCardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
@@ -373,14 +428,22 @@ public class SamsungPayUnitTest {
 
 
     private void stubSamsungPayStatus(final int status) throws NoSuchMethodException {
+        stubSamsungPayStatus(status, -10000);
+    }
+
+    private void stubSamsungPayStatus(final int status, final int reason) throws NoSuchMethodException {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
 
         PowerMockito.doAnswer(new Answer<Void>() {
             @Override
             public Void answer(InvocationOnMock invocation) {
                 StatusListener listener = (StatusListener) invocation.getArguments()[0];
+                Bundle bundle = new Bundle();
+                if (reason != -10000) {
+                    bundle.putInt(SpaySdk.EXTRA_ERROR_REASON, reason);
+                }
 
-                listener.onSuccess(status, new Bundle());
+                listener.onSuccess(status, bundle);
 
                 return null;
             }
