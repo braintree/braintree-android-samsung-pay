@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.braintreepayments.api.*;
@@ -198,9 +199,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void sendNonceToServer(PaymentMethodNonce nonce) {
+        showSpinner(true);
+
         Callback<Transaction> callback = new Callback<Transaction>() {
             @Override
             public void success(Transaction transaction, Response response) {
+                showSpinner(false);
+
                 if (transaction.getMessage() != null &&
                         transaction.getMessage().startsWith("created")) {
                     showDialog("Successful transaction: " + transaction.getMessage());
@@ -215,6 +220,8 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void failure(RetrofitError error) {
+                showSpinner(false);
+
                 showDialog("Unable to create a transaction. Response Code: " +
                         error.getResponse().getStatus() + " Response body: " +
                         error.getResponse().getBody());
@@ -236,6 +243,10 @@ public class MainActivity extends AppCompatActivity
                 .show();
     }
 
+    protected void showSpinner(boolean show) {
+        ProgressBar pb = (ProgressBar) findViewById(R.id.progressBar);
+        pb.setVisibility(show ? ProgressBar.VISIBLE : ProgressBar.INVISIBLE);
+    }
 
     static ApiClient getApiClient() {
         class ApiClientRequestInterceptor implements RequestInterceptor {
