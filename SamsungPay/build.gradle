@@ -27,7 +27,7 @@ dependencies {
     implementation(group: 'com.samsung.android', name: 'samsungpay', ext: 'jar')
 
     implementation 'com.android.support:support-annotations:27.1.0'
-    implementation 'com.braintreepayments.api:braintree:2.12.2-SNAPSHOT'
+    implementation 'com.braintreepayments.api:braintree:2.14.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     testImplementation 'com.google.android.gms:play-services-wallet:11.4.0'

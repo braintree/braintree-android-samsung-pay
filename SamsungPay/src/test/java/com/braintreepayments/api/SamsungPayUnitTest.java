@@ -9,7 +9,9 @@ import com.braintreepayments.api.interfaces.BraintreeErrorListener;
 import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.braintreepayments.api.internal.ClassHelper;
+import com.braintreepayments.api.models.Configuration;
 import com.braintreepayments.api.models.SamsungPayNonce;
+import com.braintreepayments.api.test.TestConfigurationBuilder;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
@@ -300,6 +302,27 @@ public class SamsungPayUnitTest {
 
         verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
     }
+
+//    @Test
+//    public void requestPayment_usesPaymentManagerWithServiceIdFromConfiguration() throws NoSuchMethodException {
+//        Configuration configuration = new TestConfigurationBuilder()
+//                .samsungPay(new TestConfigurationBuilder.TestSamsungPayConfigurationBuilder()
+//                            .serviceId("service-id")
+//                            )
+//                .buildConfiguration();
+//        MockFragmentBuilder fragmentBuilder = new MockFragmentBuilder()
+//                .configuration(configuration);
+//        PaymentManager mockedPaymentManager = mock(PaymentManager.class);
+//        PowerMockito.doNothing().when(mockedPaymentManager)
+//                .startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
+//                        any(PaymentManager.CustomSheetTransactionInfoListener.class));
+//        stub(method(SamsungPay.class, "getPaymentManager")).toReturn(mockedPaymentManager);
+//        ArgumentCaptor<BraintreePartnerInfo> infoCaptor = ArgumentCaptor.forClass(BraintreePartnerInfo.class);
+//
+//        SamsungPay.requestPayment(fragmentBuilder.build(), getCustomSheetPaymentInfo(), mock(SamsungPayCustomTransactionUpdateListener.class));
+//
+//        assertEquals("service-id", mockedPaymentManager);
+//    }
 //
 //    @Test
 //    public void requestPayment_usesPaymentManagerWithInAppPartnerServiceType() throws Exception {
