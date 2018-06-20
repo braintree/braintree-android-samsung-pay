@@ -17,44 +17,19 @@ import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import org.json.JSONObject
 import java.util.*
 
-const val BRAINTREE_SPAY_ERROR = -94107
-const val BRAINTREE_SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
-const val BRAINTREE_SPAY_ERROR_REASON_UNKNOWN = -10000
-
-enum class SamsungPayStatus(val status: Int) {
-    READY(SPAY_READY),
-    NOT_READY(SPAY_NOT_READY),
-    NOT_SUPPORTED(SPAY_NOT_SUPPORTED),
-    ERROR(BRAINTREE_SPAY_ERROR);
-
-    companion object {
-        fun valueOf(status: Int): SamsungPayStatus? = SamsungPayStatus.values().find { it.status == status }
-    }
-}
-
-enum class SamsungPayErrorReason(val reason: Int) {
-    SETUP_NOT_COMPLETED(ERROR_SPAY_SETUP_NOT_COMPLETED),
-    NEED_TO_UPDATE_SPAY_APP(ERROR_SPAY_APP_NEED_TO_UPDATE),
-    NO_SUPPORTED_CARDS_IN_WALLET(BRAINTREE_SPAY_NO_SUPPORTED_CARDS_IN_WALLET),
-    UNKNOWN(BRAINTREE_SPAY_ERROR_REASON_UNKNOWN);
-
-    companion object {
-        fun valueOf(reason: Int): SamsungPayErrorReason? = SamsungPayErrorReason.values().find { it.reason == reason }
-    }
-}
+const val SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
 
 class SamsungPayAvailability() {
-    var status: SamsungPayStatus = SamsungPayStatus.ERROR
-    var reason: SamsungPayErrorReason = SamsungPayErrorReason.UNKNOWN
+    var status: Int = SPAY_NOT_SUPPORTED
+    var reason: Int = 0
 
     constructor(status: Int, bundle: Bundle?) : this() {
-        this.status = SamsungPayStatus.valueOf(status) ?: SamsungPayStatus.NOT_SUPPORTED
+        this.status = status
         if (bundle != null) {
-            val errorIndex = bundle.getInt(SamsungPay.EXTRA_ERROR_REASON)
-            this.reason = SamsungPayErrorReason.valueOf(errorIndex) ?: SamsungPayErrorReason.UNKNOWN
+            this.reason = bundle.getInt(SamsungPay.EXTRA_ERROR_REASON)
         }
     }
-    constructor(status: SamsungPayStatus, reason: SamsungPayErrorReason) : this() {
+    constructor(status: Int, reason: Int) : this() {
         this.status = status
         this.reason = reason
     }
@@ -112,13 +87,13 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
             }
 
             override fun onFail(errorCode: Int, bundle: Bundle) {
-                listener.onResponse(SamsungPayAvailability(SamsungPayStatus.ERROR.status, bundle))
                 fragment.postCallback(SamsungPayException(errorCode, bundle))
             }
         })
     })
 }
 
+// Returns SamsungPayAvailability iff there are no supported cards in the Samsung Pay app, otherwise returns null.
 private fun requestCardInfo(fragment: BraintreeFragment,
                     braintreePartnerInfo: BraintreePartnerInfo,
                     listener: BraintreeResponseListener<SamsungPayAvailability?>)
@@ -127,14 +102,14 @@ private fun requestCardInfo(fragment: BraintreeFragment,
     paymentManager.requestCardInfo(Bundle(), object : PaymentManager.CardInfoListener {
         override fun onResult(cardResponse: MutableList<CardInfo>?) {
             if (cardResponse == null) {
-                listener.onResponse(SamsungPayAvailability(SamsungPayStatus.NOT_READY, SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET))
+                listener.onResponse(SamsungPayAvailability(SPAY_NOT_READY, SPAY_NO_SUPPORTED_CARDS_IN_WALLET))
                 return
             }
 
             val acceptedCardBrands = getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands)
             val customerCardBrands = cardResponse.map { response -> response.brand }
             if (customerCardBrands.intersect(acceptedCardBrands).isEmpty()) {
-                listener.onResponse(SamsungPayAvailability(SamsungPayStatus.NOT_READY, SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET))
+                listener.onResponse(SamsungPayAvailability(SPAY_NOT_READY, SPAY_NO_SUPPORTED_CARDS_IN_WALLET))
                 return
             }
 
@@ -142,7 +117,6 @@ private fun requestCardInfo(fragment: BraintreeFragment,
         }
 
         override fun onFailure(errorCode: Int, bundle: Bundle?) {
-            listener.onResponse(SamsungPayAvailability(SamsungPayStatus.ERROR.status, bundle))
             fragment.postCallback(SamsungPayException(errorCode, bundle))
         }
     })

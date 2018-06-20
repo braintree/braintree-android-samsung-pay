@@ -13,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.braintreepayments.api.*;
+import com.braintreepayments.api.exceptions.ErrorWithResponse;
 import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.BraintreeErrorListener;
@@ -39,6 +40,8 @@ import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+
+import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, SamsungPayCustomTransactionUpdateListener, BraintreeErrorListener, PaymentMethodNonceCreatedListener {
@@ -75,22 +78,22 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(SamsungPayAvailability availability) {
                 switch (availability.getStatus()) {
-                    case READY:
+                    case SPAY_READY:
                         mCustomSheetSamsungPayButton.setEnabled(true);
                         break;
-                    case NOT_READY:
-                        SamsungPayErrorReason reason = availability.getReason();
-                        if (reason == SamsungPayErrorReason.NEED_TO_UPDATE_SPAY_APP) {
+                    case SPAY_NOT_READY:
+                        Integer reason = availability.getReason();
+                        if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
                             showDialog("Need to update Samsung Pay app...");
                             SamsungPay.goToUpdatePage(mBraintreeFragment);
-                        } else if (reason == SamsungPayErrorReason.SETUP_NOT_COMPLETED) {
+                        } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
                             showDialog("Samsung Pay setup not completed...");
                             SamsungPay.activateSamsungPay(mBraintreeFragment);
-                        } else if (reason == SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET) {
+                        } else if (reason == SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
                             showDialog("No supported cards in wallet");
                         }
                         break;
-                    case NOT_SUPPORTED:
+                    case SPAY_NOT_SUPPORTED:
                         showDialog("Samsung Pay is not supported");
                         mCustomSheetSamsungPayButton.setEnabled(false);
                         break;
@@ -170,6 +173,8 @@ public class MainActivity extends AppCompatActivity
                     // handle accordingly
                     // ...
             }
+
+            showDialog("Samsung Pay failed with error code " + ((SamsungPayException) error).getCode());
         }
     }
 

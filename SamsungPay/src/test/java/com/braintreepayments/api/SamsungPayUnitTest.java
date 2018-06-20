@@ -111,7 +111,7 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayStatus.NOT_SUPPORTED, availability.getStatus());
+                assertEquals(SpaySdk.SPAY_NOT_SUPPORTED, availability.getStatus());
 
                 latch.countDown();
             }
@@ -127,7 +127,7 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayStatus.NOT_SUPPORTED, availability.getStatus());
+                assertEquals(SpaySdk.SPAY_NOT_SUPPORTED, availability.getStatus());
 
                 latch.countDown();
             }
@@ -145,7 +145,7 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayStatus.NOT_READY, availability.getStatus());
+                assertEquals(SpaySdk.SPAY_NOT_READY, availability.getStatus());
 
                 latch.countDown();
             }
@@ -163,7 +163,7 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayErrorReason.SETUP_NOT_COMPLETED, availability.getReason());
+                assertEquals(SpaySdk.ERROR_SPAY_SETUP_NOT_COMPLETED, availability.getReason());
 
                 latch.countDown();
             }
@@ -181,25 +181,7 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayErrorReason.NEED_TO_UPDATE_SPAY_APP, availability.getReason());
-
-                latch.countDown();
-            }
-        });
-
-        latch.await();
-    }
-
-    @Test
-    public void isReadyToPay_whenSpayErrorReasonNotGiven_returnsErrorReasonUnknown() throws NoSuchMethodException, InterruptedException {
-        stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY);
-
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
-            @Override
-            public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayErrorReason.UNKNOWN, availability.getReason());
+                assertEquals(SpaySdk.ERROR_SPAY_APP_NEED_TO_UPDATE, availability.getReason());
 
                 latch.countDown();
             }
@@ -220,7 +202,7 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayStatus.READY, availability.getStatus());
+                assertEquals(SpaySdk.SPAY_READY, availability.getStatus());
 
                 latch.countDown();
             }
@@ -239,8 +221,8 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayStatus.NOT_READY, availability.getStatus());
-                assertEquals(SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
+                assertEquals(SpaySdk.SPAY_NOT_READY, availability.getStatus());
+                assertEquals(SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
 
                 latch.countDown();
             }
@@ -259,8 +241,8 @@ public class SamsungPayUnitTest {
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayStatus.NOT_READY, availability.getStatus());
-                assertEquals(SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
+                assertEquals(SpaySdk.SPAY_NOT_READY, availability.getStatus());
+                assertEquals(SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
 
                 latch.countDown();
             }
@@ -290,14 +272,8 @@ public class SamsungPayUnitTest {
 
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
-            public void onResponse(SamsungPayAvailability availability) {
-                assertEquals(SamsungPayStatus.ERROR, availability.getStatus());
-                // TODO: should we create a SamsungPayErrorReason? Or should availability contain the exception? Or is UNKNOWN ok?
-                latch.countDown();
-            }
+            public void onResponse(SamsungPayAvailability availability) { }
         });
-
-        latch.await();
 
         ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
 
@@ -523,6 +499,7 @@ public class SamsungPayUnitTest {
             public Void answer(InvocationOnMock invocation) {
                 StatusListener listener = (StatusListener) invocation.getArguments()[0];
                 Bundle bundle = new Bundle();
+                // TODO: clean this garbage up
                 if (reason != -10000) {
                     bundle.putInt(SpaySdk.EXTRA_ERROR_REASON, reason);
                 }
