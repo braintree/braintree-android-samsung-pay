@@ -21,6 +21,7 @@ import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.braintreepayments.api.interfaces.PaymentMethodNonceCreatedListener;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.braintreepayments.api.models.BinData;
+import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.PaymentMethodNonce;
 import com.braintreepayments.api.models.SamsungPayNonce;
 import com.braintreepayments.demo.samsungpay.internal.ApiClient;
@@ -182,6 +183,14 @@ public class MainActivity extends AppCompatActivity
     public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
         displayPaymentMethodNonce(paymentMethodNonce);
         sendNonceToServer(paymentMethodNonce);
+    }
+
+    @Override
+    public void onCancel(int requestCode) {
+        if (requestCode == 13595) {
+//        if (requestCode == BraintreeRequestCodes.SAMSUNG_PAY) { // TODO
+            Log.d("SamsungPay", "User canceled payment.");
+        }
     }
 
     private void displayPaymentMethodNonce(PaymentMethodNonce paymentMethodNonce) {

@@ -427,6 +427,31 @@ public class SamsungPayUnitTest {
     }
 
     @Test
+    public void requestPayment_onFailureWhenUserCanceled_postsCancel() throws NoSuchMethodException {
+        PaymentManager mockedPaymentManager = mock(PaymentManager.class);
+
+        PowerMockito.doNothing().when(mockedPaymentManager)
+                .startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
+                        any(PaymentManager.CustomSheetTransactionInfoListener.class));
+        stubPaymentManager(mockedPaymentManager);
+
+        ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
+        ArgumentCaptor<Integer> requestCodeCaptor = ArgumentCaptor.forClass(Integer.class);
+        SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
+
+        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
+                listenerCaptor.capture());
+
+        listenerCaptor.getValue().onFailure(SpaySdk.ERROR_USER_CANCELED, null);
+        verify(mBraintreeFragment).postCancelCallback(requestCodeCaptor.capture());
+
+        int capturedCode = requestCodeCaptor.getValue();
+
+        assertEquals(13595, capturedCode); // TODO: switch to BraintreeRequestCodes.SAMSUNG_PAY
+    }
+
+    @Test
     public void requestPayment_onSuccess_postsPaymentMethodNonce() throws NoSuchMethodException {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 

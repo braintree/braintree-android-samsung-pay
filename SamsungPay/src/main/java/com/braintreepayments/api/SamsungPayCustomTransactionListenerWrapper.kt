@@ -3,7 +3,9 @@ package com.braintreepayments.api
 import android.os.Bundle
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
+import com.braintreepayments.api.models.BraintreeRequestCodes
 import com.braintreepayments.api.models.SamsungPayNonce
+import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
@@ -22,7 +24,11 @@ internal class SamsungPayCustomTransactionListenerWrapper(
     }
 
     override fun onFailure(errorCode: Int, extras: Bundle?) {
-        fragment.postCallback(SamsungPayException(errorCode, extras))
+        if (errorCode == SpaySdk.ERROR_USER_CANCELED) {
+            fragment.postCancelCallback(13595) // TODO: replace with BraintreeRequestCodes.SAMSUNG_PAY
+        } else {
+            fragment.postCallback(SamsungPayException(errorCode, extras))
+        }
     }
 
     override fun onCardInfoUpdated(cardInfo: CardInfo?, customSheet: CustomSheet?) {
