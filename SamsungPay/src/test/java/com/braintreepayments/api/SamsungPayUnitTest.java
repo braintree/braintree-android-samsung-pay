@@ -58,17 +58,13 @@ import static org.powermock.api.mockito.PowerMockito.*;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(RobolectricTestRunner.class)
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*", "org.json.*", "com.samsung.*"})
+@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*", "org.json.*"})
 @PrepareForTest(value = {
         ClassHelper.class,
         SamsungPay.class,
         com.samsung.android.sdk.samsungpay.v2.SamsungPay.class,
         PaymentManager.class
-},
-        fullyQualifiedNames = {
-                "com.samsung.android.sdk.samsungpay.v2.SpaySdk$Brand$1"
-        }
-)
+})
 public class SamsungPayUnitTest {
 
     @Rule
@@ -215,7 +211,7 @@ public class SamsungPayUnitTest {
     @Test
     public void isReadyToPay_whenSpayStatusIsReady_returnsStatusReady() throws NoSuchMethodException, InterruptedException {
         stubSamsungPayStatus(SpaySdk.SPAY_READY);
-        List<CardInfo> cardInfos = new ArrayList<CardInfo>();
+        List<CardInfo> cardInfos = new ArrayList<>();
         cardInfos.add(new CardInfo.Builder().setBrand(SpaySdk.Brand.VISA).build());
         stubPaymentManagerRequestCardInfo(cardInfos);
 
