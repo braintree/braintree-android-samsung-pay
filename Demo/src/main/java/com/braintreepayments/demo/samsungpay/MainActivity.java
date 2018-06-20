@@ -74,18 +74,21 @@ public class MainActivity extends AppCompatActivity
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
-                switch (availability.status()) {
+                switch (availability.getStatus()) {
                     case READY:
                         mCustomSheetSamsungPayButton.setEnabled(true);
                         break;
                     case NOT_READY:
-                        SamsungPayErrorReason reason = availability.errorReason();
+                        SamsungPayErrorReason reason = availability.getReason();
                         if (reason == SamsungPayErrorReason.NEED_TO_UPDATE_SPAY_APP) {
+                            showDialog("Need to update Samsung Pay app...");
                             SamsungPay.goToUpdatePage(mBraintreeFragment);
                         } else if (reason == SamsungPayErrorReason.SETUP_NOT_COMPLETED) {
+                            showDialog("Samsung Pay setup not completed...");
                             SamsungPay.activateSamsungPay(mBraintreeFragment);
+                        } else if (reason == SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET) {
+                            showDialog("No supported cards in wallet");
                         }
-                        showDialog("Extra setup required...");
                         break;
                     case NOT_SUPPORTED:
                         showDialog("Samsung Pay is not supported");

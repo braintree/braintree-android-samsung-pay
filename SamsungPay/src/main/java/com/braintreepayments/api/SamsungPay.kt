@@ -9,20 +9,23 @@ import com.braintreepayments.api.interfaces.BraintreeResponseListener
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
 import com.braintreepayments.api.internal.ClassHelper
 import com.braintreepayments.api.models.MetadataBuilder
-import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
-import com.samsung.android.sdk.samsungpay.v2.SamsungPay
-import com.samsung.android.sdk.samsungpay.v2.SpaySdk
+import com.samsung.android.sdk.samsungpay.v2.*
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk.*
-import com.samsung.android.sdk.samsungpay.v2.StatusListener
+import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import org.json.JSONObject
 import java.util.*
 
+const val BRAINTREE_SPAY_ERROR = -94107
+const val BRAINTREE_SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
+const val BRAINTREE_SPAY_ERROR_REASON_UNKNOWN = -10000
+
 enum class SamsungPayStatus(val status: Int) {
     READY(SPAY_READY),
     NOT_READY(SPAY_NOT_READY),
-    NOT_SUPPORTED(SPAY_NOT_SUPPORTED);
+    NOT_SUPPORTED(SPAY_NOT_SUPPORTED),
+    ERROR(BRAINTREE_SPAY_ERROR);
 
     companion object {
         fun valueOf(status: Int): SamsungPayStatus? = SamsungPayStatus.values().find { it.status == status }
@@ -32,22 +35,28 @@ enum class SamsungPayStatus(val status: Int) {
 enum class SamsungPayErrorReason(val reason: Int) {
     SETUP_NOT_COMPLETED(ERROR_SPAY_SETUP_NOT_COMPLETED),
     NEED_TO_UPDATE_SPAY_APP(ERROR_SPAY_APP_NEED_TO_UPDATE),
-    NO_SUPPORTED_CARDS_IN_WALLET(-10000),
-    UNKNOWN(0);
+    NO_SUPPORTED_CARDS_IN_WALLET(BRAINTREE_SPAY_NO_SUPPORTED_CARDS_IN_WALLET),
+    UNKNOWN(BRAINTREE_SPAY_ERROR_REASON_UNKNOWN);
 
     companion object {
         fun valueOf(reason: Int): SamsungPayErrorReason? = SamsungPayErrorReason.values().find { it.reason == reason }
     }
 }
 
-class SamsungPayAvailability(private val status: Int, private val bundle: Bundle) {
-    fun status(): SamsungPayStatus {
-        return SamsungPayStatus.valueOf(status) ?: SamsungPayStatus.NOT_SUPPORTED
-    }
+class SamsungPayAvailability() {
+    var status: SamsungPayStatus = SamsungPayStatus.ERROR
+    var reason: SamsungPayErrorReason = SamsungPayErrorReason.UNKNOWN
 
-    fun errorReason(): SamsungPayErrorReason {
-        val errorIndex = bundle.getInt(SamsungPay.EXTRA_ERROR_REASON)
-        return SamsungPayErrorReason.valueOf(errorIndex) ?: SamsungPayErrorReason.UNKNOWN
+    constructor(status: Int, bundle: Bundle?) : this() {
+        this.status = SamsungPayStatus.valueOf(status) ?: SamsungPayStatus.NOT_SUPPORTED
+        if (bundle != null) {
+            val errorIndex = bundle.getInt(SamsungPay.EXTRA_ERROR_REASON)
+            this.reason = SamsungPayErrorReason.valueOf(errorIndex) ?: SamsungPayErrorReason.UNKNOWN
+        }
+    }
+    constructor(status: SamsungPayStatus, reason: SamsungPayErrorReason) : this() {
+        this.status = status
+        this.reason = reason
     }
 }
 
@@ -91,15 +100,51 @@ fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListene
 
         samsungPay.getSamsungPayStatus(object : StatusListener {
             override fun onSuccess(status: Int, bundle: Bundle) {
-                listener.onResponse(SamsungPayAvailability(status, bundle))
+                val availability = SamsungPayAvailability(status, bundle)
+                if (status != SPAY_READY) {
+                    listener.onResponse(availability)
+                    return
+                }
+
+                requestCardInfo(fragment, braintreePartnerInfo, BraintreeResponseListener<SamsungPayAvailability?> { cardInfoAvailability ->
+                        listener.onResponse(cardInfoAvailability ?: availability)
+                })
             }
 
             override fun onFail(errorCode: Int, bundle: Bundle) {
-                // TODO: is it even necessary to post a response, given that we post the exception?
-                listener.onResponse(SamsungPayAvailability(SPAY_NOT_SUPPORTED, bundle))
+                listener.onResponse(SamsungPayAvailability(SamsungPayStatus.ERROR.status, bundle))
                 fragment.postCallback(SamsungPayException(errorCode, bundle))
             }
         })
+    })
+}
+
+private fun requestCardInfo(fragment: BraintreeFragment,
+                    braintreePartnerInfo: BraintreePartnerInfo,
+                    listener: BraintreeResponseListener<SamsungPayAvailability?>)
+{
+    val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
+    paymentManager.requestCardInfo(Bundle(), object : PaymentManager.CardInfoListener {
+        override fun onResult(cardResponse: MutableList<CardInfo>?) {
+            if (cardResponse == null) {
+                listener.onResponse(SamsungPayAvailability(SamsungPayStatus.NOT_READY, SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET))
+                return
+            }
+
+            val acceptedCardBrands = getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands)
+            val customerCardBrands = cardResponse.map { response -> response.brand }
+            if (customerCardBrands.intersect(acceptedCardBrands).isEmpty()) {
+                listener.onResponse(SamsungPayAvailability(SamsungPayStatus.NOT_READY, SamsungPayErrorReason.NO_SUPPORTED_CARDS_IN_WALLET))
+                return
+            }
+
+            listener.onResponse(null)
+        }
+
+        override fun onFailure(errorCode: Int, bundle: Bundle?) {
+            listener.onResponse(SamsungPayAvailability(SamsungPayStatus.ERROR.status, bundle))
+            fragment.postCallback(SamsungPayException(errorCode, bundle))
+        }
     })
 }
 
@@ -158,15 +203,17 @@ private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<SpaySd
     val samsungAcceptedList = ArrayList<SpaySdk.Brand>()
 
     for (braintreeAcceptedCardBrand in configurationBrands) {
-        samsungAcceptedList.add(
-            when (braintreeAcceptedCardBrand.toLowerCase()) {
-                "visa" -> SpaySdk.Brand.VISA
-                "mastercard" -> SpaySdk.Brand.MASTERCARD
-                "discover" -> SpaySdk.Brand.DISCOVER
-                "american_express" -> SpaySdk.Brand.AMERICANEXPRESS
-                else -> SpaySdk.Brand.UNKNOWN_CARD
-            }
-        )
+        run loop@ {
+            samsungAcceptedList.add(
+                    when (braintreeAcceptedCardBrand.toLowerCase()) {
+                        "visa" -> SpaySdk.Brand.VISA
+                        "mastercard" -> SpaySdk.Brand.MASTERCARD
+                        "discover" -> SpaySdk.Brand.DISCOVER
+                        "american_express" -> SpaySdk.Brand.AMERICANEXPRESS
+                        else -> return@loop
+                    }
+            )
+        }
     }
 
     return samsungAcceptedList
