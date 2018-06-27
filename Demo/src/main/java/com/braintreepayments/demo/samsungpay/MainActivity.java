@@ -11,14 +11,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import com.braintreepayments.api.*;
-import com.braintreepayments.api.exceptions.ErrorWithResponse;
+import com.braintreepayments.api.BraintreeFragment;
+import com.braintreepayments.api.SamsungPay;
+import com.braintreepayments.api.SamsungPayAvailability;
 import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.*;
 import com.braintreepayments.api.models.BinData;
-import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.PaymentMethodNonce;
 import com.braintreepayments.api.models.SamsungPayNonce;
 import com.braintreepayments.demo.samsungpay.internal.ApiClient;
@@ -26,13 +25,7 @@ import com.braintreepayments.demo.samsungpay.models.Transaction;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo;
-import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AddressControl;
-import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountBoxControl;
-import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountConstants;
-import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet;
-import com.samsung.android.sdk.samsungpay.v2.payment.sheet.SheetItemType;
-import com.samsung.android.sdk.samsungpay.v2.payment.sheet.SheetUpdatedListener;
-
+import com.samsung.android.sdk.samsungpay.v2.payment.sheet.*;
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
@@ -183,7 +176,6 @@ public class MainActivity extends AppCompatActivity
         sendNonceToServer(paymentMethodNonce);
     }
 
-    @Override
     public void onCancel(int requestCode) {
         if (requestCode == 13595) {
 //        if (requestCode == BraintreeRequestCodes.SAMSUNG_PAY) { // TODO

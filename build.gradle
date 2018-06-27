@@ -18,6 +18,9 @@ allprojects {
         flatDir {
             dirs "${rootDir}/libs"
         }
+        maven {
+            url "file://${rootDir}/braintree-maven"
+        }
         google()
         jcenter()
         maven {

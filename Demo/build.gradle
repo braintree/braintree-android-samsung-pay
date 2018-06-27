@@ -40,8 +40,8 @@ android {
 dependencies {
     implementation project(':SamsungPay')
 
-    implementation 'com.braintreepayments.api:braintree:2.14.0'
-
+    // TODO wait for Braintree Android 3.0.0 to release
+    implementation 'com.braintreepayments.api:braintree:3.0.0-alpha1'
     productionImplementation(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
     stagingImplementation(group: 'com.samsung.android', name: 'samsungpay-staging', ext: 'jar')
 
