@@ -16,10 +16,7 @@ import com.braintreepayments.api.*;
 import com.braintreepayments.api.exceptions.ErrorWithResponse;
 import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.exceptions.SamsungPayException;
-import com.braintreepayments.api.interfaces.BraintreeErrorListener;
-import com.braintreepayments.api.interfaces.BraintreeResponseListener;
-import com.braintreepayments.api.interfaces.PaymentMethodNonceCreatedListener;
-import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
+import com.braintreepayments.api.interfaces.*;
 import com.braintreepayments.api.models.BinData;
 import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.PaymentMethodNonce;
@@ -45,9 +42,10 @@ import retrofit.client.Response;
 import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, SamsungPayCustomTransactionUpdateListener, BraintreeErrorListener, PaymentMethodNonceCreatedListener {
+        implements View.OnClickListener, SamsungPayCustomTransactionUpdateListener, BraintreeErrorListener, BraintreeCancelListener, PaymentMethodNonceCreatedListener {
 
-    private static final String TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
+    private static final String PRODUCTION_TOKENIZATION_KEY = "production_7mhvr35p_vwfg3wgq8b3n3xss";
+    private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_qp6s8528_8tvdc68tr86hsvfy";
 
     private Button mCustomSheetSamsungPayButton;
     private BraintreeFragment mBraintreeFragment;
@@ -64,7 +62,7 @@ public class MainActivity extends AppCompatActivity
         mNonceDetails.setVisibility(View.VISIBLE);
 
         try {
-            mBraintreeFragment = BraintreeFragment.newInstance(this, TOKENIZATION_KEY);
+            mBraintreeFragment = BraintreeFragment.newInstance(this, PRODUCTION_TOKENIZATION_KEY);
         } catch (InvalidArgumentException ignored) {
         }
     }

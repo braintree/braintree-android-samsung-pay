@@ -335,7 +335,7 @@ public class SamsungPayUnitTest {
 //                .startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
 //                        any(PaymentManager.CustomSheetTransactionInfoListener.class));
 //        stub(method(SamsungPay.class, "getPaymentManager")).toReturn(mockedPaymentManager);
-//        ArgumentCaptor<BraintreePartnerInfo> infoCaptor = ArgumentCaptor.forClass(BraintreePartnerInfo.class);
+//        ArgumentCaptor<com.braintreepayments.api.BraintreePartnerInfo> infoCaptor = ArgumentCaptor.forClass(com.braintreepayments.api.BraintreePartnerInfo.class);
 //
 //        SamsungPay.requestPayment(fragmentBuilder.build(), getCustomSheetPaymentInfo(), mock(SamsungPayCustomTransactionUpdateListener.class));
 //
