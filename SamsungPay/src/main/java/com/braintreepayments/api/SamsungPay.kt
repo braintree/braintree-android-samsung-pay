@@ -135,8 +135,8 @@ fun createPaymentInfo(
 ) {
     getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
         var paymentInfo = CustomSheetPaymentInfo.Builder()
-                .setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
                 .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
+                .setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
                 .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
         listener.onResponse(paymentInfo)
     })
@@ -197,8 +197,8 @@ internal fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResp
     fragment.waitForConfiguration { configuration ->
         val bundle = Bundle()
 
-        bundle.putString(SpaySdk.PARTNER_SERVICE_TYPE, SpaySdk.ServiceType.INAPP_PAYMENT.toString())
-        bundle.putBoolean(PaymentManager.EXTRA_KEY_TEST_MODE, true)
+        bundle.putString(PARTNER_SERVICE_TYPE, ServiceType.INAPP_PAYMENT.toString())
+        bundle.putBoolean(PaymentManager.EXTRA_KEY_TEST_MODE, false) //configuration.environment.toUpperCase() == "SANDBOX") // true --> sandbox, false --> production
 
         val clientSdkMetadataJson = JSONObject()
         clientSdkMetadataJson.put("clientSdkMetadata", MetadataBuilder()

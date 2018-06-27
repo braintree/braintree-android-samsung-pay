@@ -321,36 +321,6 @@ public class SamsungPayUnitTest {
         verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
     }
 
-//    @Test
-//    public void requestPayment_usesPaymentManagerWithServiceIdFromConfiguration() throws NoSuchMethodException {
-//        Configuration configuration = new TestConfigurationBuilder()
-//                .samsungPay(new TestConfigurationBuilder.TestSamsungPayConfigurationBuilder()
-//                            .serviceId("service-id")
-//                            )
-//                .buildConfiguration();
-//        MockFragmentBuilder fragmentBuilder = new MockFragmentBuilder()
-//                .configuration(configuration);
-//        PaymentManager mockedPaymentManager = mock(PaymentManager.class);
-//        PowerMockito.doNothing().when(mockedPaymentManager)
-//                .startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
-//                        any(PaymentManager.CustomSheetTransactionInfoListener.class));
-//        stub(method(SamsungPay.class, "getPaymentManager")).toReturn(mockedPaymentManager);
-//        ArgumentCaptor<BraintreePartnerInfo> infoCaptor = ArgumentCaptor.forClass(BraintreePartnerInfo.class);
-//
-//        SamsungPay.requestPayment(fragmentBuilder.build(), getCustomSheetPaymentInfo(), mock(SamsungPayCustomTransactionUpdateListener.class));
-//
-//        assertEquals("service-id", mockedPaymentManager);
-//    }
-//
-//    @Test
-//    public void requestPayment_usesPaymentManagerWithInAppPartnerServiceType() throws Exception {
-//    }
-//
-//    @Test
-//    public void requestPayment_usesPaymentManagerWithClientSdkMetadata() {
-//        // TODO
-//    }
-//
     @Test
     public void requestPayment_onCardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
