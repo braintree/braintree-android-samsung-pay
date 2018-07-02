@@ -198,7 +198,7 @@ internal fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResp
         val bundle = Bundle()
 
         bundle.putString(PARTNER_SERVICE_TYPE, ServiceType.INAPP_PAYMENT.toString())
-        bundle.putBoolean(PaymentManager.EXTRA_KEY_TEST_MODE, false) //configuration.environment.toUpperCase() == "SANDBOX") // true --> sandbox, false --> production
+        bundle.putBoolean(PaymentManager.EXTRA_KEY_TEST_MODE, configuration.samsungPay.environment.toUpperCase() == "SANDBOX")
 
         val clientSdkMetadataJson = JSONObject()
         clientSdkMetadataJson.put("clientSdkMetadata", MetadataBuilder()

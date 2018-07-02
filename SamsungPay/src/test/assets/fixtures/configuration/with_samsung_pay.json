@@ -15,12 +15,10 @@
   "samsungPay": {
     "displayName": "some example merchant",
     "serviceId": "some-service-id",
+    "environment": "SANDBOX",
     "supportedCardBrands": [
       "american_express",
-      "diners",
       "discover",
-      "jcb",
-      "maestro",
       "mastercard",
       "visa"
     ],
