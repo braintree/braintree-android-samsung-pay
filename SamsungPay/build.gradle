@@ -46,12 +46,13 @@ android {
 }
 
 dependencies {
-    
+    // TODO wait for Braintree Android 3.0.0 to release
+    implementation 'com.braintreepayments.api:braintree:3.0.0-alpha1'
+
     productionImplementation(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
     stagingImplementation(group: 'com.samsung.android', name: 'samsungpay-staging', ext: 'jar')
 
     implementation 'com.android.support:support-annotations:27.1.0'
-    implementation 'com.braintreepayments.api:braintree:2.14.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     testImplementation 'com.google.android.gms:play-services-wallet:11.4.0'
@@ -99,6 +100,10 @@ nexusStaging {
     packageGroup = "com.braintreepayments"
     username = sonatypeUsername
     password = sonatypePassword
+}
+
+uploadArchives.doFirst {
+    GradleException("Release is blocked on waiting for Braintree Android release")
 }
 
 uploadArchives {
