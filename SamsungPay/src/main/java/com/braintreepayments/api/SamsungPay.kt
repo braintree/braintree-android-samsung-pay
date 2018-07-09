@@ -2,6 +2,7 @@
 
 package com.braintreepayments.api
 
+import android.content.Intent
 import android.os.Bundle
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.BraintreeErrorListener
@@ -155,13 +156,14 @@ fun requestPayment(
     customSheetPaymentInfo: CustomSheetPaymentInfo,
     listener: SamsungPayCustomTransactionUpdateListener
 ) {
-    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
-        val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
 
-        paymentManager.startInAppPayWithCustomSheet(
-            customSheetPaymentInfo,
-            SamsungPayCustomTransactionListenerWrapper(fragment, paymentManager, listener)
-        )
+    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
+        val samsungPayActivity = Intent()
+            .putExtra("CUSTOM_SHEET_PAYMENT_INFO", customSheetPaymentInfo)
+            .putExtra("BRAINTREE_PARTNER_INFO", braintreePartnerInfo)
+        val requestCode = 21
+
+        fragment.startActivityForResult(samsungPayActivity, requestCode)
     })
 }
 
