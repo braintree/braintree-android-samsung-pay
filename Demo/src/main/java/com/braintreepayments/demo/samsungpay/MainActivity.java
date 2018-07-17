@@ -34,8 +34,8 @@ import retrofit.client.Response;
 
 import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 
-public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, SamsungPayCustomTransactionUpdateListener, BraintreeErrorListener, BraintreeCancelListener, PaymentMethodNonceCreatedListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, BraintreeErrorListener,
+        BraintreeCancelListener, PaymentMethodNonceCreatedListener {
 
     private static final String PRODUCTION_TOKENIZATION_KEY = "production_7mhvr35p_vwfg3wgq8b3n3xss";
     private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity
         mNonceDetails.setVisibility(View.VISIBLE);
 
         try {
-            mBraintreeFragment = BraintreeFragment.newInstance(this, PRODUCTION_TOKENIZATION_KEY);
+            mBraintreeFragment = BraintreeFragment.newInstance(this, SANDBOX_TOKENIZATION_KEY);
         } catch (InvalidArgumentException ignored) {
         }
     }
@@ -107,16 +107,17 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(CustomSheetPaymentInfo.Builder builder) {
                 builder.setCustomSheet(getCustomSheet());
+                builder.setOrderNumber("order-number");
 
                 SamsungPay.requestPayment(mBraintreeFragment, builder.build(), new SamsungPayCustomTransactionUpdateListener() {
                     @Override
                     public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
                         AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
-                        amountBoxControl.updateValue("itemId", 1000);
-                        amountBoxControl.updateValue("taxId", 50);
-                        amountBoxControl.updateValue("shippingId", 10);
-                        amountBoxControl.updateValue("interestId", 0);
-                        amountBoxControl.updateValue("fuelId", 10);
+                        amountBoxControl.updateValue("itemId", 1);
+                        amountBoxControl.updateValue("taxId", 1);
+                        amountBoxControl.updateValue("shippingId", 1);
+                        amountBoxControl.updateValue("interestId",1);
+                        amountBoxControl.updateValue("fuelId", 1);
 
                         customSheet.updateControl(amountBoxControl);
                     }
@@ -137,22 +138,17 @@ public class MainActivity extends AppCompatActivity
         });
 
         final AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
-        amountBoxControl.addItem("itemId", "Items", 1000, "");
-        amountBoxControl.addItem("taxId", "Tax", 50, "");
+        amountBoxControl.addItem("itemId", "Items", 1, "");
+        amountBoxControl.addItem("taxId", "Tax", 1, "");
         amountBoxControl.addItem("shippingId", "Shipping", 10, "");
         amountBoxControl.addItem("interestId", "Interest [ex]", 0, "");
-        amountBoxControl.setAmountTotal(1050 + amountBoxControl.getValue("shippingId") +
-                amountBoxControl.getValue("interestId"), AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
+        amountBoxControl.setAmountTotal(1, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
         amountBoxControl.addItem(3, "fuelId", "FUEL", 0, "Pending");
 
         CustomSheet sheet = new CustomSheet();
         sheet.addControl(billingAddressControl);
         sheet.addControl(amountBoxControl);
         return sheet;
-    }
-
-    @Override
-    public void onCardInfoUpdated(CardInfo cardInfo, CustomSheet customSheet) {
     }
 
     @Override
