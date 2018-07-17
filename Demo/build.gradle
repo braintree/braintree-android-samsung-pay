@@ -27,11 +27,9 @@ android {
     productFlavors {
         flavorDimensions("environment")
         staging {
-
         }
 
         production {
-
         }
     }
 
