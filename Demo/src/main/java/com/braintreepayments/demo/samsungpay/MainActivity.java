@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, SamsungPayCustomTransactionUpdateListener, BraintreeErrorListener, BraintreeCancelListener, PaymentMethodNonceCreatedListener {
 
     private static final String PRODUCTION_TOKENIZATION_KEY = "production_7mhvr35p_vwfg3wgq8b3n3xss";
-    private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_qp6s8528_8tvdc68tr86hsvfy";
+    private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
 
     private Button mCustomSheetSamsungPayButton;
     private BraintreeFragment mBraintreeFragment;
