@@ -9,8 +9,11 @@ import com.braintreepayments.api.interfaces.BraintreeResponseListener
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
 import com.braintreepayments.api.internal.ClassHelper
 import com.braintreepayments.api.models.MetadataBuilder
-import com.samsung.android.sdk.samsungpay.v2.*
+import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
+import com.samsung.android.sdk.samsungpay.v2.SamsungPay
+import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk.*
+import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
@@ -177,16 +180,11 @@ private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<SpaySd
     val samsungAcceptedList = ArrayList<SpaySdk.Brand>()
 
     for (braintreeAcceptedCardBrand in configurationBrands) {
-        run loop@ {
-            samsungAcceptedList.add(
-                    when (braintreeAcceptedCardBrand.toLowerCase()) {
-                        "visa" -> SpaySdk.Brand.VISA
-                        "mastercard" -> SpaySdk.Brand.MASTERCARD
-                        "discover" -> SpaySdk.Brand.DISCOVER
-                        "american_express" -> SpaySdk.Brand.AMERICANEXPRESS
-                        else -> return@loop
-                    }
-            )
+        when (braintreeAcceptedCardBrand.toLowerCase()) {
+            "visa" -> samsungAcceptedList.add(SpaySdk.Brand.VISA)
+            "mastercard" -> samsungAcceptedList.add(SpaySdk.Brand.MASTERCARD)
+            "discover" -> samsungAcceptedList.add(SpaySdk.Brand.DISCOVER)
+            "american_express" -> samsungAcceptedList.add(SpaySdk.Brand.AMERICANEXPRESS)
         }
     }
 
@@ -213,9 +211,9 @@ internal fun getPartnerInfo(fragment: BraintreeFragment, listener: BraintreeResp
 }
 
 internal fun getSamsungPay(fragment: BraintreeFragment, info: PartnerInfo): SamsungPay {
-    return SamsungPay(fragment.applicationContext, info)
+    return SamsungPay(fragment.activity, info)
 }
 
 internal fun getPaymentManager(fragment: BraintreeFragment, info: PartnerInfo): PaymentManager {
-    return PaymentManager(fragment.applicationContext, info)
+    return PaymentManager(fragment.activity, info)
 }
