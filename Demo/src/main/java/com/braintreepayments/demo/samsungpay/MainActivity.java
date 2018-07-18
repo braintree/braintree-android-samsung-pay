@@ -37,7 +37,7 @@ import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, BraintreeErrorListener,
         BraintreeCancelListener, PaymentMethodNonceCreatedListener {
 
-    private static final String PRODUCTION_TOKENIZATION_KEY = "production_7mhvr35p_vwfg3wgq8b3n3xss";
+    private static final String PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m";
     private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
 
     private Button mCustomSheetSamsungPayButton;
