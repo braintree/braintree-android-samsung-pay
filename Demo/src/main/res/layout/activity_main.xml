@@ -13,8 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         tools:text="Billing Address Details"
-        android:textSize="10sp"
-        android:text="" />
+        android:textSize="10sp"/>
 
     <TextView
         android:id="@+id/shipping_address_details"
@@ -23,8 +22,7 @@
         android:layout_below="@id/billing_address_details"
         android:layout_marginBottom="8dp"
         tools:text="Shipping Address Details"
-        android:textSize="10sp"
-        android:text="" />
+        android:textSize="10sp"/>
 
     <TextView
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
@@ -34,8 +32,7 @@
         android:layout_below="@id/shipping_address_details"
         android:layout_marginBottom="8dp"
         tools:text="Nonce Details"
-        android:textSize="10sp"
-        android:text="" />
+        android:textSize="10sp"/>
 
     <Button
         android:id="@+id/samsung_pay_transact"
