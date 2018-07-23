@@ -6,6 +6,29 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/billing_address_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Billing Address Details"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/shipping_address_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/billing_address_details"
+        tools:text="Shipping Address Details"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/nonce_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/shipping_address_details"
+        tools:text="Nonce Details"
+        android:text="" />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -21,19 +44,6 @@
             android:text="@string/start_samsung_pay_custom"
             />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/nonce_details"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/linearLayout"
-        android:layout_alignLeft="@+id/linearLayout"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/linearLayout"
-        android:layout_alignStart="@+id/linearLayout"
-        android:layout_below="@+id/linearLayout"
-        android:layout_marginTop="21dp"
-        android:text="" />
 
     <ProgressBar
         android:id="@+id/progressBar"
