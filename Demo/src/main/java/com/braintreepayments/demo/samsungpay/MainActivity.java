@@ -129,7 +129,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         SamsungPay.requestPayment(mBraintreeFragment, mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
                             @Override
                             public void onSuccess(CustomSheetPaymentInfo response, Bundle extraPaymentData) {
-                                CustomSheetPaymentInfo.AddressInPaymentSheet billingAddress = response.getAddressInPaymentSheet();
+                                CustomSheet customSheet = response.getCustomSheet();
+                                AddressControl billingAddressControl = (AddressControl) customSheet.getSheetControl("billingAddressId");
+                                CustomSheetPaymentInfo.Address billingAddress = billingAddressControl.getAddress();
+
                                 CustomSheetPaymentInfo.Address shippingAddress = response.getPaymentShippingAddress();
 
                                 displayAddresses(billingAddress, shippingAddress);
@@ -220,10 +223,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void displayAddresses(CustomSheetPaymentInfo.AddressInPaymentSheet billingAddress, CustomSheetPaymentInfo.Address shippingAddress) {
+    private void displayAddresses(CustomSheetPaymentInfo.Address billingAddress, CustomSheetPaymentInfo.Address shippingAddress) {
         if (billingAddress != null) {
             mBillingAddressDetails.setText(TextUtils.join("\n", Arrays.asList(
-                    "Billing Address"
+                    "Billing Address",
+                    "Addressee: " + shippingAddress.getAddressee(),
+                    "AddressLine1: " + shippingAddress.getAddressLine1(),
+                    "AddressLine2: " + shippingAddress.getAddressLine2(),
+                    "City: " + shippingAddress.getCity(),
+                    "PostalCode: " + shippingAddress.getPostalCode(),
+                    "CountryCode: " + shippingAddress.getCountryCode()
             )));
         }
 

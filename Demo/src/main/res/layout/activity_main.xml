@@ -4,12 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_margin="8dp"
     tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/billing_address_details"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         tools:text="Billing Address Details"
         android:text="" />
 
@@ -18,6 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/billing_address_details"
+        android:layout_marginBottom="8dp"
         tools:text="Shipping Address Details"
         android:text="" />
 
@@ -26,6 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/shipping_address_details"
+        android:layout_marginBottom="8dp"
         tools:text="Nonce Details"
         android:text="" />
 
