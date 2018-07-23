@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         tools:text="Billing Address Details"
+        android:textSize="10sp"
         android:text="" />
 
     <TextView
@@ -22,41 +23,45 @@
         android:layout_below="@id/billing_address_details"
         android:layout_marginBottom="8dp"
         tools:text="Shipping Address Details"
+        android:textSize="10sp"
         android:text="" />
 
     <TextView
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
         android:id="@+id/nonce_details"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/shipping_address_details"
         android:layout_marginBottom="8dp"
         tools:text="Nonce Details"
+        android:textSize="10sp"
         android:text="" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_centerInParent="true"
-        android:id="@+id/linearLayout">
-
-        <Button
-            android:id="@+id/samsung_pay_demo_launch_button_custom_sheet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:enabled="false"
-            android:text="@string/start_samsung_pay_custom"
-            />
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/samsung_pay_transact"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="72dp"
-        android:visibility="invisible" />
+        android:enabled="false"
+        android:onClick="transact"
+        android:text="@string/samsung_pay_transact"/>
+
+    <Button
+        android:id="@+id/samsung_pay_tokenize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/samsung_pay_transact"
+        android:enabled="false"
+        android:onClick="tokenize"
+        android:text="@string/samsung_pay_tokenize"/>
+
+    <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:visibility="invisible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>

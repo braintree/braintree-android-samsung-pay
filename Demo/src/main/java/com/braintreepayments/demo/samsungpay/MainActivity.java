@@ -37,26 +37,29 @@ import java.util.Arrays;
 
 import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, BraintreeErrorListener,
-        BraintreeCancelListener, PaymentMethodNonceCreatedListener {
+public class MainActivity extends AppCompatActivity implements BraintreeErrorListener, BraintreeCancelListener,
+        PaymentMethodNonceCreatedListener {
 
     private static final String PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m";
     private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
 
-    private Button mCustomSheetSamsungPayButton;
+    private Button mTokenizeButton;
+    private Button mTransactButton;
     private BraintreeFragment mBraintreeFragment;
     private static ApiClient sApiClient;
     private TextView mBillingAddressDetails;
     private TextView mShippingAddressDetails;
     private TextView mNonceDetails;
     private PaymentManager mPaymentManager;
+    private PaymentMethodNonce mPaymentMethodNonce;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mCustomSheetSamsungPayButton = findViewById(R.id.samsung_pay_demo_launch_button_custom_sheet);
+        mTokenizeButton = findViewById(R.id.samsung_pay_tokenize);
+        mTransactButton = findViewById(R.id.samsung_pay_transact);
         mBillingAddressDetails = findViewById(R.id.billing_address_details);
         mShippingAddressDetails = findViewById(R.id.shipping_address_details);
         mNonceDetails = findViewById(R.id.nonce_details);
@@ -72,14 +75,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
-        mCustomSheetSamsungPayButton.setOnClickListener(this);
-
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
                 switch (availability.getStatus()) {
                     case SPAY_READY:
-                        mCustomSheetSamsungPayButton.setEnabled(true);
+                        mTokenizeButton.setEnabled(true);
                         break;
                     case SPAY_NOT_READY:
                         Integer reason = availability.getReason();
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
                     case SPAY_NOT_SUPPORTED:
                         showDialog("Samsung Pay is not supported");
-                        mCustomSheetSamsungPayButton.setEnabled(false);
+                        mTokenizeButton.setEnabled(false);
                         break;
                 }
             }
@@ -106,11 +107,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onPause() {
         super.onPause();
 
-        mCustomSheetSamsungPayButton.setOnClickListener(null);
+        mTokenizeButton.setOnClickListener(null);
     }
 
-    @Override
-    public void onClick(View v) {
+    public void tokenize(View v) {
         SamsungPay.createPaymentManager(mBraintreeFragment, new BraintreeResponseListener<PaymentManager>() {
             @Override
             public void onResponse(PaymentManager paymentManager) {
@@ -212,8 +212,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
+        mPaymentMethodNonce = paymentMethodNonce;
+        mTransactButton.setEnabled(true);
+
         displayPaymentMethodNonce(paymentMethodNonce);
-        sendNonceToServer(paymentMethodNonce);
     }
 
     public void onCancel(int requestCode) {
@@ -271,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 "         - Product Id: " + binData.getProductId();
     }
 
-    private void sendNonceToServer(PaymentMethodNonce nonce) {
+    public void transact(View v) {
         showSpinner(true);
 
         Callback<Transaction> callback = new Callback<Transaction>() {
@@ -301,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
 
-        getApiClient().createTransaction(nonce.getNonce(), "stch2nfdfwszytw5", callback);
+        getApiClient().createTransaction(mPaymentMethodNonce.getNonce(), "stch2nfdfwszytw5", callback);
     }
 
     protected void showDialog(String message) {
