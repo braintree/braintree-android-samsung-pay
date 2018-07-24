@@ -103,13 +103,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         });
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        mTokenizeButton.setOnClickListener(null);
-    }
-
     public void tokenize(View v) {
         SamsungPay.createPaymentManager(mBraintreeFragment, new BraintreeResponseListener<PaymentManager>() {
             @Override
