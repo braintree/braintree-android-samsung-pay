@@ -7,11 +7,22 @@
     android:layout_margin="8dp"
     tools:context=".MainActivity">
 
+    <CheckBox
+        android:id="@+id/use_production"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_centerHorizontal="true"
+        android:text="Use Production?"
+        android:textSize="10sp"
+        android:onClick="onEnvironmentChange"/>
+
     <TextView
         android:id="@+id/billing_address_details"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:layout_below="@id/use_production"
         tools:text="Billing Address Details"
         android:textSize="10sp"/>
 
