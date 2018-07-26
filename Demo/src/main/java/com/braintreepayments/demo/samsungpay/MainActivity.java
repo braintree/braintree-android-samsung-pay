@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.braintreepayments.api.BraintreeFragment;
@@ -43,6 +44,10 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private static final String PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m";
     private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
 
+    private static final String PRODUCTION_ENDPOINT = "https://executive-sample-merchant.herokuapp.com";
+    private static final String SANDBOX_ENDPOINT = "https://braintree-sample-merchant.herokuapp.com";
+
+    private CheckBox mUseProduction;
     private Button mTokenizeButton;
     private Button mTransactButton;
     private BraintreeFragment mBraintreeFragment;
@@ -52,12 +57,15 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private TextView mNonceDetails;
     private PaymentManager mPaymentManager;
     private PaymentMethodNonce mPaymentMethodNonce;
+    private String mAuthorization;
+    private String mEndpoint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mUseProduction = findViewById(R.id.use_production);
         mTokenizeButton = findViewById(R.id.samsung_pay_tokenize);
         mTransactButton = findViewById(R.id.samsung_pay_transact);
         mBillingAddressDetails = findViewById(R.id.billing_address_details);
@@ -65,15 +73,31 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         mNonceDetails = findViewById(R.id.nonce_details);
         mNonceDetails.setVisibility(View.VISIBLE);
 
-        try {
-            mBraintreeFragment = BraintreeFragment.newInstance(this, SANDBOX_TOKENIZATION_KEY);
-        } catch (InvalidArgumentException ignored) {
-        }
+        startBraintree();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+    private void startBraintree() {
+        mTokenizeButton.setEnabled(false);
+        mTransactButton.setEnabled(false);
+
+        if (mBraintreeFragment != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .remove(mBraintreeFragment)
+                    .commitNow();
+        }
+
+        if (mUseProduction.isChecked()) {
+            mAuthorization = PRODUCTION_TOKENIZATION_KEY;
+            mEndpoint = PRODUCTION_ENDPOINT;
+        } else {
+            mAuthorization = SANDBOX_TOKENIZATION_KEY;
+            mEndpoint = SANDBOX_ENDPOINT;
+        }
+
+        try {
+            mBraintreeFragment = BraintreeFragment.newInstance(this, mAuthorization);
+        } catch (InvalidArgumentException ignored) {
+        }
 
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
@@ -296,7 +320,8 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             }
         };
 
-        getApiClient().createTransaction(mPaymentMethodNonce.getNonce(), "stch2nfdfwszytw5", callback);
+        getApiClient(mEndpoint)
+                .createTransaction(mPaymentMethodNonce.getNonce(), "SamsungPayFD", callback);
     }
 
     protected void showDialog(String message) {
@@ -316,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         pb.setVisibility(show ? ProgressBar.VISIBLE : ProgressBar.INVISIBLE);
     }
 
-    static ApiClient getApiClient() {
+    static ApiClient getApiClient(String endpoint) {
         class ApiClientRequestInterceptor implements RequestInterceptor {
             @Override
             public void intercept(RequestFacade request) {
@@ -327,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
 
         if (sApiClient == null) {
             sApiClient = new RestAdapter.Builder()
-                    .setEndpoint("https://braintree-sample-merchant.herokuapp.com")
+                    .setEndpoint(endpoint)
                     .setRequestInterceptor(new ApiClientRequestInterceptor())
                     .build()
                     .create(ApiClient.class);
