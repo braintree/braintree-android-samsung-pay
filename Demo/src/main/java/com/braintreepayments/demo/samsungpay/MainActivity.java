@@ -19,6 +19,7 @@ import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.*;
 import com.braintreepayments.api.models.BinData;
+import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.PaymentMethodNonce;
 import com.braintreepayments.api.models.SamsungPayNonce;
 import com.braintreepayments.demo.samsungpay.internal.ApiClient;
@@ -236,8 +237,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     }
 
     public void onCancel(int requestCode) {
-        if (requestCode == 13595) {
-//        if (requestCode == BraintreeRequestCodes.SAMSUNG_PAY) { // TODO
+        if (requestCode == BraintreeRequestCodes.SAMSUNG_PAY) {
             Log.d("SamsungPay", "User canceled payment.");
         }
     }

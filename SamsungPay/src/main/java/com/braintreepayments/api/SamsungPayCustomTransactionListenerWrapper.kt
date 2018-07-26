@@ -31,7 +31,7 @@ internal class SamsungPayCustomTransactionListenerWrapper(
 
     override fun onFailure(errorCode: Int, extras: Bundle?) {
         if (errorCode == SpaySdk.ERROR_USER_CANCELED) {
-            fragment.postCancelCallback(13595) // TODO: replace with BraintreeRequestCodes.SAMSUNG_PAY
+            fragment.postCancelCallback(BraintreeRequestCodes.SAMSUNG_PAY)
         } else {
             fragment.postCallback(SamsungPayException(errorCode, extras))
         }
