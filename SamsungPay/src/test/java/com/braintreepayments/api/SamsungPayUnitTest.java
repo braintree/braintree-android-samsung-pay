@@ -9,6 +9,7 @@ import com.braintreepayments.api.interfaces.BraintreeErrorListener;
 import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.braintreepayments.api.internal.ClassHelper;
+import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.SamsungPayNonce;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
@@ -424,7 +425,7 @@ public class SamsungPayUnitTest {
 
         int capturedCode = requestCodeCaptor.getValue();
 
-        assertEquals(13595, capturedCode); // TODO: switch to BraintreeRequestCodes.SAMSUNG_PAY
+        assertEquals(BraintreeRequestCodes.SAMSUNG_PAY, capturedCode);
     }
 
     @Test
