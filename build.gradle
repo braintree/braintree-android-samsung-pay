@@ -18,10 +18,6 @@ allprojects {
         flatDir {
             dirs "${rootDir}/libs"
         }
-        // TODO remove this before 1.0 release
-        maven {
-            url "file://${rootDir}/braintree-maven"
-        }
         google()
         jcenter()
         maven {

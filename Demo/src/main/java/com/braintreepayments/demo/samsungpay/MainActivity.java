@@ -81,9 +81,9 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         mTransactButton.setEnabled(false);
 
         if (mBraintreeFragment != null) {
-            getSupportFragmentManager().beginTransaction()
+            getFragmentManager().beginTransaction()
                     .remove(mBraintreeFragment)
-                    .commitNow();
+                    .commit();
         }
 
         if (mUseProduction.isChecked()) {
