@@ -9,9 +9,7 @@ import com.braintreepayments.api.interfaces.BraintreeErrorListener;
 import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.braintreepayments.api.internal.ClassHelper;
-import com.braintreepayments.api.models.Configuration;
 import com.braintreepayments.api.models.SamsungPayNonce;
-import com.braintreepayments.api.test.TestConfigurationBuilder;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
@@ -41,9 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static com.braintreepayments.api.models.BinData.NO;
-import static com.braintreepayments.api.models.BinData.UNKNOWN;
-import static com.braintreepayments.api.models.BinData.YES;
+import static com.braintreepayments.api.models.BinData.*;
 import static com.braintreepayments.api.test.FixturesHelper.stringFromFixture;
 import static junit.framework.Assert.*;
 import static org.mockito.Matchers.any;
@@ -317,6 +313,16 @@ public class SamsungPayUnitTest {
         CustomSheetPaymentInfo paymentInfo = getCustomSheetPaymentInfo();
 
         SamsungPay.requestPayment(mBraintreeFragment, paymentInfo, mock(SamsungPayCustomTransactionUpdateListener.class));
+
+        verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
+    }
+
+    @Test
+    public void requestPayment_whenPassingPaymentManager_usesSuppliedPaymentManager() {
+        PaymentManager mockedManager = mock(PaymentManager.class);
+        CustomSheetPaymentInfo paymentInfo = getCustomSheetPaymentInfo();
+
+        SamsungPay.requestPayment(mBraintreeFragment, mockedManager, paymentInfo, mock(SamsungPayCustomTransactionUpdateListener.class));
 
         verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
     }

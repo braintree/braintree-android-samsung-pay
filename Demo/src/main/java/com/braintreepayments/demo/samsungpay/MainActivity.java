@@ -25,6 +25,7 @@ import com.braintreepayments.demo.samsungpay.models.Transaction;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo;
+import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.*;
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
@@ -32,25 +33,35 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
+import java.util.Arrays;
+
 import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, BraintreeErrorListener,
-        BraintreeCancelListener, PaymentMethodNonceCreatedListener {
+public class MainActivity extends AppCompatActivity implements BraintreeErrorListener, BraintreeCancelListener,
+        PaymentMethodNonceCreatedListener {
 
     private static final String PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m";
     private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
 
-    private Button mCustomSheetSamsungPayButton;
+    private Button mTokenizeButton;
+    private Button mTransactButton;
     private BraintreeFragment mBraintreeFragment;
     private static ApiClient sApiClient;
+    private TextView mBillingAddressDetails;
+    private TextView mShippingAddressDetails;
     private TextView mNonceDetails;
+    private PaymentManager mPaymentManager;
+    private PaymentMethodNonce mPaymentMethodNonce;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mCustomSheetSamsungPayButton = findViewById(R.id.samsung_pay_demo_launch_button_custom_sheet);
+        mTokenizeButton = findViewById(R.id.samsung_pay_tokenize);
+        mTransactButton = findViewById(R.id.samsung_pay_transact);
+        mBillingAddressDetails = findViewById(R.id.billing_address_details);
+        mShippingAddressDetails = findViewById(R.id.shipping_address_details);
         mNonceDetails = findViewById(R.id.nonce_details);
         mNonceDetails.setVisibility(View.VISIBLE);
 
@@ -64,14 +75,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
-        mCustomSheetSamsungPayButton.setOnClickListener(this);
-
         SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
                 switch (availability.getStatus()) {
                     case SPAY_READY:
-                        mCustomSheetSamsungPayButton.setEnabled(true);
+                        mTokenizeButton.setEnabled(true);
                         break;
                     case SPAY_NOT_READY:
                         Integer reason = availability.getReason();
@@ -87,39 +96,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
                     case SPAY_NOT_SUPPORTED:
                         showDialog("Samsung Pay is not supported");
-                        mCustomSheetSamsungPayButton.setEnabled(false);
+                        mTokenizeButton.setEnabled(false);
                         break;
                 }
             }
         });
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        mCustomSheetSamsungPayButton.setOnClickListener(null);
-    }
-
-    @Override
-    public void onClick(View v) {
-        SamsungPay.createPaymentInfo(mBraintreeFragment, new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
+    public void tokenize(View v) {
+        SamsungPay.createPaymentManager(mBraintreeFragment, new BraintreeResponseListener<PaymentManager>() {
             @Override
-            public void onResponse(CustomSheetPaymentInfo.Builder builder) {
-                builder.setCustomSheet(getCustomSheet());
-                builder.setOrderNumber("order-number");
+            public void onResponse(PaymentManager paymentManager) {
+                mPaymentManager = paymentManager;
 
-                SamsungPay.requestPayment(mBraintreeFragment, builder.build(), new SamsungPayCustomTransactionUpdateListener() {
+                SamsungPay.createPaymentInfo(mBraintreeFragment, new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
                     @Override
-                    public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
-                        AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
-                        amountBoxControl.updateValue("itemId", 1);
-                        amountBoxControl.updateValue("taxId", 1);
-                        amountBoxControl.updateValue("shippingId", 1);
-                        amountBoxControl.updateValue("interestId",1);
-                        amountBoxControl.updateValue("fuelId", 1);
+                    public void onResponse(CustomSheetPaymentInfo.Builder builder) {
+                        CustomSheetPaymentInfo paymentInfo = builder
+                                .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
+                                .setCustomSheet(getCustomSheet())
+                                .setOrderNumber("order-number")
+                                .build();
 
-                        customSheet.updateControl(amountBoxControl);
+
+                        SamsungPay.requestPayment(mBraintreeFragment, mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
+                            @Override
+                            public void onSuccess(CustomSheetPaymentInfo response, Bundle extraPaymentData) {
+                                CustomSheet customSheet = response.getCustomSheet();
+                                AddressControl billingAddressControl = (AddressControl) customSheet.getSheetControl("billingAddressId");
+                                CustomSheetPaymentInfo.Address billingAddress = billingAddressControl.getAddress();
+
+                                CustomSheetPaymentInfo.Address shippingAddress = response.getPaymentShippingAddress();
+
+                                displayAddresses(billingAddress, shippingAddress);
+                            }
+
+                            @Override
+                            public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
+                                AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
+                                amountBoxControl.updateValue("itemId", 1);
+                                amountBoxControl.updateValue("taxId", 1);
+                                amountBoxControl.updateValue("shippingId", 1);
+                                amountBoxControl.updateValue("interestId",1);
+                                amountBoxControl.updateValue("fuelId", 1);
+
+                                customSheet.updateControl(amountBoxControl);
+                            }
+                        });
                     }
                 });
             }
@@ -127,27 +150,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private CustomSheet getCustomSheet() {
-        AddressControl billingAddressControl = new AddressControl("billingAddressId", SheetItemType.BILLING_ADDRESS);
+        CustomSheet sheet = new CustomSheet();
 
-        billingAddressControl.setAddressTitle("Billing Address [control]");
+        final AddressControl billingAddressControl = new AddressControl("billingAddressId", SheetItemType.BILLING_ADDRESS);
+        billingAddressControl.setAddressTitle("Billing Address");
         billingAddressControl.setSheetUpdatedListener(new SheetUpdatedListener() {
             @Override
-            public void onResult(String s, CustomSheet customSheet) {
-                Log.d("address sheet updated", s);
+            public void onResult(String controlId, final CustomSheet customSheet) {
+                Log.d("billing sheet updated", controlId);
+
+                mPaymentManager.updateSheet(customSheet);
             }
         });
+        sheet.addControl(billingAddressControl);
 
-        final AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
+        final AddressControl shippingAddressControl = new AddressControl("shippingAddressId", SheetItemType.SHIPPING_ADDRESS);
+        shippingAddressControl.setAddressTitle("Shipping Address");
+        shippingAddressControl.setSheetUpdatedListener(new SheetUpdatedListener() {
+            @Override
+            public void onResult(String controlId, final CustomSheet customSheet) {
+                Log.d("shipping sheet updated", controlId);
+
+                mPaymentManager.updateSheet(customSheet);
+            }
+        });
+        sheet.addControl(shippingAddressControl);
+
+        AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
         amountBoxControl.addItem("itemId", "Items", 1, "");
         amountBoxControl.addItem("taxId", "Tax", 1, "");
         amountBoxControl.addItem("shippingId", "Shipping", 10, "");
         amountBoxControl.addItem("interestId", "Interest [ex]", 0, "");
         amountBoxControl.setAmountTotal(1, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
         amountBoxControl.addItem(3, "fuelId", "FUEL", 0, "Pending");
-
-        CustomSheet sheet = new CustomSheet();
-        sheet.addControl(billingAddressControl);
         sheet.addControl(amountBoxControl);
+
         return sheet;
     }
 
@@ -168,14 +205,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
+        mPaymentMethodNonce = paymentMethodNonce;
+        mTransactButton.setEnabled(true);
+
         displayPaymentMethodNonce(paymentMethodNonce);
-        sendNonceToServer(paymentMethodNonce);
     }
 
     public void onCancel(int requestCode) {
         if (requestCode == 13595) {
 //        if (requestCode == BraintreeRequestCodes.SAMSUNG_PAY) { // TODO
             Log.d("SamsungPay", "User canceled payment.");
+        }
+    }
+
+    private void displayAddresses(CustomSheetPaymentInfo.Address billingAddress, CustomSheetPaymentInfo.Address shippingAddress) {
+        if (billingAddress != null) {
+            mBillingAddressDetails.setText(TextUtils.join("\n", Arrays.asList(
+                    "Billing Address",
+                    "Addressee: " + shippingAddress.getAddressee(),
+                    "AddressLine1: " + shippingAddress.getAddressLine1(),
+                    "AddressLine2: " + shippingAddress.getAddressLine2(),
+                    "City: " + shippingAddress.getCity(),
+                    "PostalCode: " + shippingAddress.getPostalCode(),
+                    "CountryCode: " + shippingAddress.getCountryCode()
+            )));
+        }
+
+        if (shippingAddress != null) {
+            mShippingAddressDetails.setText(TextUtils.join("\n", Arrays.asList(
+                    "Shipping Address",
+                    "Addressee: " + shippingAddress.getAddressee(),
+                    "AddressLine1: " + shippingAddress.getAddressLine1(),
+                    "AddressLine2: " + shippingAddress.getAddressLine2(),
+                    "City: " + shippingAddress.getCity(),
+                    "PostalCode: " + shippingAddress.getPostalCode(),
+                    "CountryCode: " + shippingAddress.getCountryCode()
+            )));
         }
     }
 
@@ -201,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 "         - Product Id: " + binData.getProductId();
     }
 
-    private void sendNonceToServer(PaymentMethodNonce nonce) {
+    public void transact(View v) {
         showSpinner(true);
 
         Callback<Transaction> callback = new Callback<Transaction>() {
@@ -231,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
 
-        getApiClient().createTransaction(nonce.getNonce(), "stch2nfdfwszytw5", callback);
+        getApiClient().createTransaction(mPaymentMethodNonce.getNonce(), "stch2nfdfwszytw5", callback);
     }
 
     protected void showDialog(String message) {
@@ -247,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     protected void showSpinner(boolean show) {
-        ProgressBar pb = (ProgressBar) findViewById(R.id.progressBar);
+        ProgressBar pb = findViewById(R.id.progressBar);
         pb.setVisibility(show ? ProgressBar.VISIBLE : ProgressBar.INVISIBLE);
     }
 

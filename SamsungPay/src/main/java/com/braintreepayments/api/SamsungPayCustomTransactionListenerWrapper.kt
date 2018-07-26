@@ -21,6 +21,12 @@ internal class SamsungPayCustomTransactionListenerWrapper(
         if (paymentCredential != null) {
             fragment.postCallback(SamsungPayNonce.fromPaymentData(paymentCredential))
         }
+
+        if (response != null) {
+            val bundle = extraPaymentData ?: Bundle()
+            merchantCallback.onSuccess(response, bundle)
+        }
+
     }
 
     override fun onFailure(errorCode: Int, extras: Bundle?) {

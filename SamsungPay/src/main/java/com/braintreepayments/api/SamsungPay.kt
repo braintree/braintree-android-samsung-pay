@@ -146,11 +146,26 @@ fun createPaymentInfo(
 }
 
 /**
+ * Creates a [PaymentManager] that can communicate with Braintree.
+ * @param [fragment] [BraintreeFragment]
+ * @param [listener] Returns the [PaymentManager]
+ */
+fun createPaymentManager(
+    fragment: BraintreeFragment,
+    listener: BraintreeResponseListener<PaymentManager>
+) {
+    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
+        val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
+        listener.onResponse(paymentManager)
+    })
+}
+
+/**
  * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the Samsung Pay flow
  * with some custom UI provided by you.
  *
  * @param [fragment] TODO
- * @param [customSheetPaymentInfoBuilder] TODO
+ * @param [customSheetPaymentInfo] TODO
  * @param [listener] TODO
  */
 fun requestPayment(
@@ -158,14 +173,30 @@ fun requestPayment(
     customSheetPaymentInfo: CustomSheetPaymentInfo,
     listener: SamsungPayCustomTransactionUpdateListener
 ) {
-    getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
-        val paymentManager = getPaymentManager(fragment, braintreePartnerInfo)
-
-        paymentManager.startInAppPayWithCustomSheet(
-            customSheetPaymentInfo,
-            SamsungPayCustomTransactionListenerWrapper(fragment, paymentManager, listener)
-        )
+    createPaymentManager(fragment, BraintreeResponseListener {
+        requestPayment(fragment, it, customSheetPaymentInfo, listener)
     })
+}
+
+/**
+ * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the Samsung Pay flow
+ * with some custom UI provided by you.
+ *
+ * @param [fragment] TODO
+ * @param [paymentManager] TODO
+ * @param [customSheetPaymentInfo] TODO
+ * @param [listener] TODO
+ */
+fun requestPayment(
+    fragment: BraintreeFragment,
+    paymentManager: PaymentManager,
+    customSheetPaymentInfo: CustomSheetPaymentInfo,
+    listener: SamsungPayCustomTransactionUpdateListener
+) {
+    paymentManager.startInAppPayWithCustomSheet(
+        customSheetPaymentInfo,
+        SamsungPayCustomTransactionListenerWrapper(fragment, paymentManager, listener)
+    )
 }
 
 /**

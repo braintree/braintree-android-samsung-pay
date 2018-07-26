@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">SamsungPayDemo</string>
-    <string name="start_samsung_pay_normal">Start Samsung Pay (normal sheet)</string>
-    <string name="start_samsung_pay_custom">Start Samsung Pay (custom sheet)</string>
+    <string name="samsung_pay_tokenize">Tokenize Samsung Pay</string>
+    <string name="samsung_pay_transact">Transact Samsung Pay</string>
 </resources>
