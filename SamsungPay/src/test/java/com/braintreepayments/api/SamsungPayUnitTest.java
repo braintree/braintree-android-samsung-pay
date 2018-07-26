@@ -425,7 +425,7 @@ public class SamsungPayUnitTest {
 
         int capturedCode = requestCodeCaptor.getValue();
 
-        assertEquals(BraintreeRequestCodes.SAMSUNG_PAY, capturedCode); // TODO: switch to BraintreeRequestCodes.SAMSUNG_PAY
+        assertEquals(BraintreeRequestCodes.SAMSUNG_PAY, capturedCode);
     }
 
     @Test
