@@ -159,13 +159,10 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                             @Override
                             public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
                                 AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
-                                amountBoxControl.updateValue("itemId", 1);
-                                amountBoxControl.updateValue("taxId", 1);
-                                amountBoxControl.updateValue("shippingId", 1);
-                                amountBoxControl.updateValue("interestId",1);
-                                amountBoxControl.updateValue("fuelId", 1);
+                                amountBoxControl.setAmountTotal(0.02, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
 
                                 customSheet.updateControl(amountBoxControl);
+                                mPaymentManager.updateSheet(customSheet);
                             }
                         });
                     }
@@ -184,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             public void onResult(String controlId, final CustomSheet customSheet) {
                 Log.d("billing sheet updated", controlId);
 
+                customSheet.updateControl(billingAddressControl);
                 mPaymentManager.updateSheet(customSheet);
             }
         });
@@ -196,18 +194,14 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             public void onResult(String controlId, final CustomSheet customSheet) {
                 Log.d("shipping sheet updated", controlId);
 
+                customSheet.updateControl(shippingAddressControl);
                 mPaymentManager.updateSheet(customSheet);
             }
         });
         sheet.addControl(shippingAddressControl);
 
         AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
-        amountBoxControl.addItem("itemId", "Items", 1, "");
-        amountBoxControl.addItem("taxId", "Tax", 1, "");
-        amountBoxControl.addItem("shippingId", "Shipping", 10, "");
-        amountBoxControl.addItem("interestId", "Interest [ex]", 0, "");
-        amountBoxControl.setAmountTotal(1, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
-        amountBoxControl.addItem(3, "fuelId", "FUEL", 0, "Pending");
+        amountBoxControl.setAmountTotal(0.01, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
         sheet.addControl(amountBoxControl);
 
         return sheet;
@@ -222,6 +216,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                 case SpaySdk.ERROR_NO_NETWORK:
                     // handle accordingly
                     // ...
+                    break;
             }
 
             showDialog("Samsung Pay failed with error code " + ((SamsungPayException) error).getCode());
