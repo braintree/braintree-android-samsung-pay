@@ -2,6 +2,7 @@ package com.braintreepayments.demo.samsungpay
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.support.annotation.IdRes
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
@@ -36,37 +37,68 @@ import java.util.*
 class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, BraintreeCancelListener,
     PaymentMethodNonceCreatedListener {
 
-    private var mUseProduction: CheckBox? = null
-    private var mTokenizeButton: Button? = null
-    private var mTransactButton: Button? = null
-    private var mBraintreeFragment: BraintreeFragment? = null
-    private var mBillingAddressDetails: TextView? = null
-    private var mShippingAddressDetails: TextView? = null
-    private var mNonceDetails: TextView? = null
-    private var mPaymentManager: PaymentManager? = null
-    private var mPaymentMethodNonce: PaymentMethodNonce? = null
-    private var mAuthorization: String? = null
-    private var mEndpoint: String? = null
+    companion object {
+        private val PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m"
+        private val SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn"
 
-    private val customSheet: CustomSheet
+        private val PRODUCTION_ENDPOINT = "https://executive-sample-merchant.herokuapp.com"
+        private val SANDBOX_ENDPOINT = "https://braintree-sample-merchant.herokuapp.com"
+        private var sApiClient: ApiClient? = null
+
+        internal fun getApiClient(endpoint: String?): ApiClient? {
+            class ApiClientRequestInterceptor : RequestInterceptor {
+                override fun intercept(request: RequestInterceptor.RequestFacade) {
+                    request.addHeader("User-Agent", "braintree/android-demo-app/" + BuildConfig.VERSION_NAME)
+                    request.addHeader("Accept", "application/json")
+                }
+            }
+
+            if (sApiClient == null) {
+                sApiClient = RestAdapter.Builder()
+                    .setEndpoint(endpoint!!)
+                    .setRequestInterceptor(ApiClientRequestInterceptor())
+                    .build()
+                    .create<ApiClient>(ApiClient::class.java)
+            }
+
+            return sApiClient
+        }
+    }
+
+
+
+    private val useProduction:CheckBox by bind(R.id.use_production)
+    private val tokenizeButton: Button by bind(R.id.samsung_pay_tokenize)
+    private val transactButton: Button by bind(R.id.samsung_pay_transact)
+    private val billingAddressDetails: TextView by bind(R.id.billing_address_details)
+    private val shippingAddressDetails: TextView by bind(R.id.shipping_address_details)
+    private val nonceDetails: TextView by bind(R.id.nonce_details)
+
+    private var braintreeFragment: BraintreeFragment? = null
+    private lateinit var paymentManager: PaymentManager
+    private lateinit var paymentMethodNonce: PaymentMethodNonce
+    private lateinit var authorization: String
+    private lateinit var endpoint: String
+
+    private val custosheet: CustomSheet
         get() {
             val sheet = CustomSheet()
 
             val billingAddressControl = AddressControl("billingAddressId", SheetItemType.BILLING_ADDRESS)
             billingAddressControl.addressTitle = "Billing Address"
-            billingAddressControl.sheetUpdatedListener = SheetUpdatedListener { controlId, customSheet ->
+            billingAddressControl.sheetUpdatedListener = SheetUpdatedListener { controlId, custosheet ->
                 Log.d("billing sheet updated", controlId)
 
-                mPaymentManager!!.updateSheet(customSheet)
+                paymentManager.updateSheet(custosheet)
             }
             sheet.addControl(billingAddressControl)
 
             val shippingAddressControl = AddressControl("shippingAddressId", SheetItemType.SHIPPING_ADDRESS)
             shippingAddressControl.addressTitle = "Shipping Address"
-            shippingAddressControl.sheetUpdatedListener = SheetUpdatedListener { controlId, customSheet ->
+            shippingAddressControl.sheetUpdatedListener = SheetUpdatedListener { controlId, custosheet ->
                 Log.d("shipping sheet updated", controlId)
 
-                mPaymentManager!!.updateSheet(customSheet)
+                paymentManager.updateSheet(custosheet)
             }
             sheet.addControl(shippingAddressControl)
 
@@ -86,84 +118,76 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mUseProduction = findViewById(R.id.use_production)
-        mTokenizeButton = findViewById(R.id.samsung_pay_tokenize)
-        mTransactButton = findViewById(R.id.samsung_pay_transact)
-        mBillingAddressDetails = findViewById(R.id.billing_address_details)
-        mShippingAddressDetails = findViewById(R.id.shipping_address_details)
-        mNonceDetails = findViewById(R.id.nonce_details)
-        mNonceDetails!!.visibility = View.VISIBLE
-
         startBraintree()
     }
 
     private fun startBraintree() {
-        mTokenizeButton!!.isEnabled = false
-        mTransactButton!!.isEnabled = false
+        tokenizeButton.isEnabled = false
+        transactButton.isEnabled = false
 
-        if (mBraintreeFragment != null) {
+        if (braintreeFragment != null) {
             fragmentManager.beginTransaction()
-                .remove(mBraintreeFragment)
+                .remove(braintreeFragment)
                 .commit()
         }
 
-        if (mUseProduction!!.isChecked) {
-            mAuthorization = PRODUCTION_TOKENIZATION_KEY
-            mEndpoint = PRODUCTION_ENDPOINT
+        if (useProduction.isChecked) {
+            authorization = PRODUCTION_TOKENIZATION_KEY
+            endpoint = PRODUCTION_ENDPOINT
         } else {
-            mAuthorization = SANDBOX_TOKENIZATION_KEY
-            mEndpoint = SANDBOX_ENDPOINT
+            authorization = SANDBOX_TOKENIZATION_KEY
+            endpoint = SANDBOX_ENDPOINT
         }
 
         try {
-            mBraintreeFragment = BraintreeFragment.newInstance(this, mAuthorization)
+            braintreeFragment = BraintreeFragment.newInstance(this, authorization)
         } catch (ignored: InvalidArgumentException) {
         }
 
-        SamsungPay.isReadyToPay(mBraintreeFragment!!, BraintreeResponseListener { availability ->
+        SamsungPay.isReadyToPay(braintreeFragment!!, BraintreeResponseListener { availability ->
             when (availability.status) {
-                SPAY_READY -> mTokenizeButton!!.isEnabled = true
+                SPAY_READY -> tokenizeButton.isEnabled = true
                 SPAY_NOT_READY -> {
                     val reason = availability.reason
                     if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
                         showDialog("Need to update Samsung Pay app...")
-                        SamsungPay.goToUpdatePage(mBraintreeFragment!!)
+                        SamsungPay.goToUpdatePage(braintreeFragment!!)
                     } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
                         showDialog("Samsung Pay setup not completed...")
-                        SamsungPay.activateSamsungPay(mBraintreeFragment!!)
+                        SamsungPay.activateSamsungPay(braintreeFragment!!)
                     } else if (reason == SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
                         showDialog("No supported cards in wallet")
                     }
                 }
                 SPAY_NOT_SUPPORTED -> {
                     showDialog("Samsung Pay is not supported")
-                    mTokenizeButton!!.isEnabled = false
+                    tokenizeButton.isEnabled = false
                 }
             }
         })
     }
 
     fun tokenize(v: View) {
-        SamsungPay.createPaymentManager(mBraintreeFragment!!, BraintreeResponseListener { paymentManager ->
-            mPaymentManager = paymentManager
+        SamsungPay.createPaymentManager(braintreeFragment!!, BraintreeResponseListener {
+            paymentManager = it
 
-            SamsungPay.createPaymentInfo(mBraintreeFragment!!, BraintreeResponseListener { builder ->
+            SamsungPay.createPaymentInfo(braintreeFragment!!, BraintreeResponseListener { builder ->
                 val paymentInfo = builder
                     .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
-                    .setCustomSheet(customSheet)
+                    .setCustomSheet(custosheet)
                     .setOrderNumber("order-number")
                     .build()
 
 
                 SamsungPay.requestPayment(
-                    mBraintreeFragment!!,
-                    mPaymentManager!!,
+                    braintreeFragment!!,
+                    paymentManager,
                     paymentInfo,
                     object : SamsungPayCustomTransactionUpdateListener {
                         override fun onSuccess(response: CustomSheetPaymentInfo, extraPaymentData: Bundle) {
-                            val customSheet = response.customSheet
+                            val custosheet = response.customSheet
                             val billingAddressControl =
-                                customSheet.getSheetControl("billingAddressId") as AddressControl
+                                custosheet.getSheetControl("billingAddressId") as AddressControl
                             val billingAddress = billingAddressControl.address
 
                             val shippingAddress = response.paymentShippingAddress
@@ -171,15 +195,15 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
                             displayAddresses(billingAddress, shippingAddress)
                         }
 
-                        override fun onCardInfoUpdated(cardInfo: CardInfo, customSheet: CustomSheet) {
-                            val amountBoxControl = customSheet.getSheetControl("amountID") as AmountBoxControl
+                        override fun onCardInfoUpdated(cardInfo: CardInfo, custosheet: CustomSheet) {
+                            val amountBoxControl = custosheet.getSheetControl("amountID") as AmountBoxControl
                             amountBoxControl.updateValue("itemId", 1.0)
                             amountBoxControl.updateValue("taxId", 1.0)
                             amountBoxControl.updateValue("shippingId", 1.0)
                             amountBoxControl.updateValue("interestId", 1.0)
                             amountBoxControl.updateValue("fuelId", 1.0)
 
-                            customSheet.updateControl(amountBoxControl)
+                            custosheet.updateControl(amountBoxControl)
                         }
                     })
             })
@@ -191,17 +215,16 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
             val (code) = error
 
             when (code) {
-
-            }// handle accordingly
-            // ...
+                // Handle SamsungPayException
+            }
 
             showDialog("Samsung Pay failed with error code " + error.code)
         }
     }
 
-    override fun onPaymentMethodNonceCreated(paymentMethodNonce: PaymentMethodNonce) {
-        mPaymentMethodNonce = paymentMethodNonce
-        mTransactButton!!.isEnabled = true
+    override fun onPaymentMethodNonceCreated(it: PaymentMethodNonce) {
+        paymentMethodNonce = it
+        transactButton.isEnabled = true
 
         displayPaymentMethodNonce(paymentMethodNonce)
     }
@@ -217,21 +240,21 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         shippingAddress: CustomSheetPaymentInfo.Address?
     ) {
         if (billingAddress != null) {
-            mBillingAddressDetails!!.text = TextUtils.join(
+            billingAddressDetails.text = TextUtils.join(
                 "\n", Arrays.asList(
                     "Billing Address",
-                    "Addressee: " + shippingAddress!!.addressee,
-                    "AddressLine1: " + shippingAddress.addressLine1,
-                    "AddressLine2: " + shippingAddress.addressLine2,
-                    "City: " + shippingAddress.city,
-                    "PostalCode: " + shippingAddress.postalCode,
-                    "CountryCode: " + shippingAddress.countryCode
+                    "Addressee: " + billingAddress.addressee,
+                    "AddressLine1: " + billingAddress.addressLine1,
+                    "AddressLine2: " + billingAddress.addressLine2,
+                    "City: " + billingAddress.city,
+                    "PostalCode: " + billingAddress.postalCode,
+                    "CountryCode: " + billingAddress.countryCode
                 )
             )
         }
 
         if (shippingAddress != null) {
-            mShippingAddressDetails!!.text = TextUtils.join(
+            shippingAddressDetails.text = TextUtils.join(
                 "\n", Arrays.asList(
                     "Shipping Address",
                     "Addressee: " + shippingAddress.addressee,
@@ -251,7 +274,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
                 "Token: " + nonce.nonce + "\n" +
                 binDataString(nonce.binData!!)
 
-        mNonceDetails!!.text = display
+        nonceDetails.text = display
     }
 
     private fun binDataString(binData: BinData): String {
@@ -296,47 +319,24 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
             }
         }
 
-        getApiClient(mEndpoint)?.createTransaction(
-            mPaymentMethodNonce!!.nonce, "SamsungPayFD", callback)
+        getApiClient(endpoint)?.createTransaction(
+            paymentMethodNonce.nonce, "SamsungPayFD", callback)
     }
 
-    protected fun showDialog(message: String) {
+    private fun showDialog(message: String) {
         AlertDialog.Builder(this)
             .setMessage(message)
             .setPositiveButton(android.R.string.ok) { dialog, which -> dialog.dismiss() }
             .show()
     }
 
-    protected fun showSpinner(show: Boolean) {
+    private fun showSpinner(show: Boolean) {
         val pb = findViewById<ProgressBar>(R.id.progressBar)
         pb.visibility = if (show) ProgressBar.VISIBLE else ProgressBar.INVISIBLE
     }
 
-    companion object {
-        private val PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m"
-        private val SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn"
-
-        private val PRODUCTION_ENDPOINT = "https://executive-sample-merchant.herokuapp.com"
-        private val SANDBOX_ENDPOINT = "https://braintree-sample-merchant.herokuapp.com"
-        private var sApiClient: ApiClient? = null
-
-        internal fun getApiClient(endpoint: String?): ApiClient? {
-            class ApiClientRequestInterceptor : RequestInterceptor {
-                override fun intercept(request: RequestInterceptor.RequestFacade) {
-                    request.addHeader("User-Agent", "braintree/android-demo-app/" + BuildConfig.VERSION_NAME)
-                    request.addHeader("Accept", "application/json")
-                }
-            }
-
-            if (sApiClient == null) {
-                sApiClient = RestAdapter.Builder()
-                    .setEndpoint(endpoint!!)
-                    .setRequestInterceptor(ApiClientRequestInterceptor())
-                    .build()
-                    .create<ApiClient>(ApiClient::class.java!!)
-            }
-
-            return sApiClient
-        }
+    private fun <T : View> bind(@IdRes res : Int) : Lazy<T> {
+        @Suppress("UNCHECKED_CAST")
+        return lazy { findViewById<T>(res) }
     }
 }
