@@ -11,7 +11,7 @@ import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateLis
 import com.braintreepayments.api.internal.ClassHelper;
 import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.SamsungPayNonce;
-import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
+import com.braintreepayments.api.samsungpay.BuildConfig;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
@@ -30,12 +30,13 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -54,14 +55,16 @@ import static org.powermock.api.mockito.PowerMockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.*;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(RobolectricTestRunner.class)
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*", "org.json.*"})
-@PrepareForTest(value = {
+@PrepareForTest({
         ClassHelper.class,
         SamsungPay.class,
         com.samsung.android.sdk.samsungpay.v2.SamsungPay.class,
         PaymentManager.class
 })
+@Config(constants = BuildConfig.class)
 public class SamsungPayUnitTest {
 
     @Rule
@@ -97,8 +100,7 @@ public class SamsungPayUnitTest {
     }
 
 
-    @Test(timeout = 1000)
-    @SuppressWarnings("unchecked")
+    @Test
     public void isReadyToPay_whenSDKNotAvailable_returnsStatusNotSupported() {
         mockStatic(ClassHelper.class);
         when(ClassHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
@@ -115,8 +117,8 @@ public class SamsungPayUnitTest {
         });
     }
 
-    @Test(timeout = 1000)
-    public void isReadyToPay_whenSpayStatusIsNotSupported_returnsStatusNotSupported() throws Exception {
+    @Test
+    public void isReadyToPay_whenSpayStatusIsNotSupported_returnsStatusNotSupported() throws InterruptedException{
         stubSamsungPayStatus(SpaySdk.SPAY_NOT_SUPPORTED);
 
         final CountDownLatch latch = new CountDownLatch(1);
@@ -133,8 +135,8 @@ public class SamsungPayUnitTest {
         latch.await();
     }
 
-    @Test(timeout = 1000)
-    public void isReadyToPay_whenSpayStatusIsNotReady_returnsStatusNotReady() throws NoSuchMethodException, InterruptedException {
+    @Test
+    public void isReadyToPay_whenSpayStatusIsNotReady_returnsStatusNotReady() throws InterruptedException {
         stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY);
 
         final CountDownLatch latch = new CountDownLatch(1);
@@ -152,7 +154,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void isReadyToPay_whenSpayErrorReasonIsSetupNotCompleted_returnsErrorReasonSetupNotCompleted() throws NoSuchMethodException, InterruptedException {
+    public void isReadyToPay_whenSpayErrorReasonIsSetupNotCompleted_returnsErrorReasonSetupNotCompleted() throws InterruptedException {
         stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY, SpaySdk.ERROR_SPAY_SETUP_NOT_COMPLETED);
 
         final CountDownLatch latch = new CountDownLatch(1);
@@ -170,7 +172,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void isReadyToPay_whenSpayErrorReasonIsSpayAppNeedToUpdate_returnsErrorReasonSpayAppNeedToUpdate() throws NoSuchMethodException, InterruptedException {
+    public void isReadyToPay_whenSpayErrorReasonIsSpayAppNeedToUpdate_returnsErrorReasonSpayAppNeedToUpdate() throws InterruptedException {
         stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY, SpaySdk.ERROR_SPAY_APP_NEED_TO_UPDATE);
 
         final CountDownLatch latch = new CountDownLatch(1);
@@ -188,7 +190,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void isReadyToPay_whenSpayStatusIsReady_returnsStatusReady() throws NoSuchMethodException, InterruptedException {
+    public void isReadyToPay_whenSpayStatusIsReady_returnsStatusReady() throws InterruptedException {
         stubSamsungPayStatus(SpaySdk.SPAY_READY);
         List<CardInfo> cardInfos = new ArrayList<>();
         cardInfos.add(new CardInfo.Builder().setBrand(SpaySdk.Brand.VISA).build());
@@ -209,7 +211,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void isReadyToPay_whenSpayHasNoSupportedCardBrands_returnsStatusNotReady() throws NoSuchMethodException, InterruptedException {
+    public void isReadyToPay_whenSpayHasNoSupportedCardBrands_returnsStatusNotReady() throws InterruptedException {
         stubSamsungPayStatus(SpaySdk.SPAY_READY);
         stubPaymentManagerRequestCardInfo(new ArrayList<CardInfo>());
 
@@ -229,7 +231,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void isReadyToPay_whenSpayReturnsNullForSupportedCardBrands_returnsStatusNotReady() throws NoSuchMethodException, InterruptedException {
+    public void isReadyToPay_whenSpayReturnsNullForSupportedCardBrands_returnsStatusNotReady() throws InterruptedException {
         stubSamsungPayStatus(SpaySdk.SPAY_READY);
         stubPaymentManagerRequestCardInfo(null);
 
@@ -250,7 +252,7 @@ public class SamsungPayUnitTest {
 
 
     @Test
-    public void isReadyToPay_onFailure_postsExceptionAndReturnsAvailability() throws InterruptedException, NoSuchMethodException {
+    public void isReadyToPay_onFailure_postsExceptionAndReturnsAvailability() throws InterruptedException {
         com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
         doAnswer(new Answer<Void>() {
             @Override
@@ -308,7 +310,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void requestPayment_startsInAppPay() throws NoSuchMethodException {
+    public void requestPayment_startsInAppPay() {
         PaymentManager mockedManager = mock(PaymentManager.class);
         stubPaymentManager(mockedManager);
         CustomSheetPaymentInfo paymentInfo = getCustomSheetPaymentInfo();
@@ -329,7 +331,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void requestPayment_onCardInfoUpdated_withNullCardInfo_doesNothing() throws NoSuchMethodException {
+    public void requestPayment_onCardInfoUpdated_withNullCardInfo_doesNothing() {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
         PowerMockito.doNothing().when(mockedPaymentManager)
                 .startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
@@ -351,7 +353,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void requestPayment_onCardInfoUpdated_updatesPaymentManager() throws NoSuchMethodException {
+    public void requestPayment_onCardInfoUpdated_updatesPaymentManager() {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
         PowerMockito.doNothing().when(mockedPaymentManager)
@@ -377,7 +379,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void requestPayment_onFailure_postsException() throws NoSuchMethodException {
+    public void requestPayment_onFailure_postsException() {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
         PowerMockito.doNothing().when(mockedPaymentManager)
@@ -404,7 +406,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void requestPayment_onFailureWhenUserCanceled_postsCancel() throws NoSuchMethodException {
+    public void requestPayment_onFailureWhenUserCanceled_postsCancel() {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
         PowerMockito.doNothing().when(mockedPaymentManager)
@@ -429,7 +431,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void requestPayment_onSuccess_postsPaymentMethodNonce() throws NoSuchMethodException {
+    public void requestPayment_onSuccess_postsPaymentMethodNonce() {
         PaymentManager mockedPaymentManager = mock(PaymentManager.class);
 
         PowerMockito.doNothing().when(mockedPaymentManager)
@@ -470,7 +472,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void goToUpdatePage_callsGoToUpdatePage() throws NoSuchMethodException {
+    public void goToUpdatePage_callsGoToUpdatePage() {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
         stubSamsungPay(mockSamsungPay);
 
@@ -480,7 +482,7 @@ public class SamsungPayUnitTest {
     }
 
     @Test
-    public void activateSamsungPay_callsActivateSamsungPay() throws NoSuchMethodException {
+    public void activateSamsungPay_callsActivateSamsungPay() {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
         stubSamsungPay(mockSamsungPay);
 
@@ -489,11 +491,11 @@ public class SamsungPayUnitTest {
         verify(mockSamsungPay).activateSamsungPay();
     }
 
-    private void stubSamsungPayStatus(final int status) throws NoSuchMethodException {
+    private void stubSamsungPayStatus(final int status) {
         stubSamsungPayStatus(status, -10000);
     }
 
-    private void stubSamsungPayStatus(final int status, final int reason) throws NoSuchMethodException {
+    private void stubSamsungPayStatus(final int status, final int reason) {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
 
         PowerMockito.doAnswer(new Answer<Void>() {
@@ -515,22 +517,15 @@ public class SamsungPayUnitTest {
         stubSamsungPay(mockedSamsungPay);
     }
 
-    private void stubSamsungPay(final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay) throws NoSuchMethodException {
-        Method getSamsungPay = SamsungPay.class.getDeclaredMethod("getSamsungPay", BraintreeFragment.class, PartnerInfo.class);
-
-        PowerMockito.replace(getSamsungPay).with(new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) {
-                return mockedSamsungPay;
-            }
-        });
+    private void stubSamsungPay(final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay) {
+        stub(method(SamsungPay.Companion.class, "getSamsungPay")).toReturn(mockedSamsungPay);
     }
 
-    private void stubPaymentManager(final PaymentManager mockedPaymentManager) throws NoSuchMethodException {
-        stub(method(SamsungPay.class, "getPaymentManager")).toReturn(mockedPaymentManager);
+    private void stubPaymentManager(final PaymentManager mockedPaymentManager) {
+        stub(method(SamsungPay.Companion.class, "getPaymentManager")).toReturn(mockedPaymentManager);
     }
 
-    private void stubPaymentManagerRequestCardInfo(final List<CardInfo> cardInfos) throws NoSuchMethodException {
+    private void stubPaymentManagerRequestCardInfo(final List<CardInfo> cardInfos) {
         final PaymentManager mockedPaymentManager = mock(PaymentManager.class);
         PowerMockito.doAnswer(new Answer<Void>() {
             @Override
@@ -540,13 +535,8 @@ public class SamsungPayUnitTest {
                 return null;
             }
         }).when(mockedPaymentManager).requestCardInfo(any(Bundle.class), any(PaymentManager.CardInfoListener.class));
-        Method getPaymentManager = SamsungPay.class.getDeclaredMethod("getPaymentManager", BraintreeFragment.class, PartnerInfo.class);
-        PowerMockito.replace(getPaymentManager).with(new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) {
-                return mockedPaymentManager;
-            }
-        });
+
+        stubPaymentManager(mockedPaymentManager);
     }
 
     private CustomSheetPaymentInfo getCustomSheetPaymentInfo() {
