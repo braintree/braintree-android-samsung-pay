@@ -192,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             public void onResult(String controlId, final CustomSheet customSheet) {
                 Log.d("billing sheet updated", controlId);
 
-                customSheet.updateControl(billingAddressControl);
                 mPaymentManager.updateSheet(customSheet);
             }
         });
@@ -205,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             public void onResult(String controlId, final CustomSheet customSheet) {
                 Log.d("shipping sheet updated", controlId);
 
-                customSheet.updateControl(shippingAddressControl);
                 mPaymentManager.updateSheet(customSheet);
             }
         });
