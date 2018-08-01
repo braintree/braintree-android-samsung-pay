@@ -8,8 +8,8 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.ProgressBar
+import android.widget.RadioGroup
 import android.widget.TextView
 import com.braintreepayments.api.BraintreeFragment
 import com.braintreepayments.api.SamsungPay
@@ -38,6 +38,9 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
     PaymentMethodNonceCreatedListener {
 
     companion object {
+        private val EXTRA_AUTHORIZATION = "com.braintreepayments.demo.samsungpay.EXTRA_AUTHORIZATION"
+        private val EXTRA_ENDPOINT = "com.braintreepayments.demo.samsungpay.EXTRA_ENDPOINT"
+
         private val PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m"
         private val SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn"
 
@@ -65,9 +68,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         }
     }
 
-
-
-    private val useProduction:CheckBox by bind(R.id.use_production)
+    private val environmentGroup: RadioGroup by bind(R.id.environment_group)
     private val tokenizeButton: Button by bind(R.id.samsung_pay_tokenize)
     private val transactButton: Button by bind(R.id.samsung_pay_transact)
     private val billingAddressDetails: TextView by bind(R.id.billing_address_details)
@@ -80,7 +81,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
     private lateinit var authorization: String
     private lateinit var endpoint: String
 
-    private val custosheet: CustomSheet
+    private val customSheet: CustomSheet
         get() {
             val sheet = CustomSheet()
 
@@ -118,26 +119,35 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val extras = intent.extras
+        authorization = extras.getString(EXTRA_AUTHORIZATION, SANDBOX_TOKENIZATION_KEY)
+        endpoint = extras.getString(EXTRA_ENDPOINT, SANDBOX_ENDPOINT)
+
+        environmentGroup.check(when(authorization) {
+            PRODUCTION_TOKENIZATION_KEY -> R.id.production
+            else -> R.id.sandbox
+        })
+
+        environmentGroup.setOnCheckedChangeListener { _, checkedId ->
+            val intent = getIntent()
+            if (checkedId == R.id.production) {
+                intent.putExtra(EXTRA_AUTHORIZATION, PRODUCTION_TOKENIZATION_KEY)
+                intent.putExtra(EXTRA_ENDPOINT, PRODUCTION_ENDPOINT)
+            } else {
+                intent.putExtra(EXTRA_AUTHORIZATION, SANDBOX_TOKENIZATION_KEY)
+                intent.putExtra(EXTRA_ENDPOINT, SANDBOX_ENDPOINT)
+            }
+
+            startActivity(intent)
+            finish()
+        }
+
         startBraintree()
     }
 
     private fun startBraintree() {
         tokenizeButton.isEnabled = false
         transactButton.isEnabled = false
-
-        if (braintreeFragment != null) {
-            fragmentManager.beginTransaction()
-                .remove(braintreeFragment)
-                .commit()
-        }
-
-        if (useProduction.isChecked) {
-            authorization = PRODUCTION_TOKENIZATION_KEY
-            endpoint = PRODUCTION_ENDPOINT
-        } else {
-            authorization = SANDBOX_TOKENIZATION_KEY
-            endpoint = SANDBOX_ENDPOINT
-        }
 
         try {
             braintreeFragment = BraintreeFragment.newInstance(this, authorization)
@@ -174,7 +184,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
             SamsungPay.createPaymentInfo(braintreeFragment!!, BraintreeResponseListener { builder ->
                 val paymentInfo = builder
                     .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
-                    .setCustomSheet(custosheet)
+                    .setCustomSheet(customSheet)
                     .setOrderNumber("order-number")
                     .build()
 

@@ -2,6 +2,7 @@ package com.braintreepayments.demo.samsungpay;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -9,8 +10,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import com.braintreepayments.api.BraintreeFragment;
 import com.braintreepayments.api.SamsungPay;
@@ -41,6 +42,8 @@ import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 
 public class MainActivity extends AppCompatActivity implements BraintreeErrorListener, BraintreeCancelListener,
         PaymentMethodNonceCreatedListener {
+    private static final String EXTRA_AUTHORIZATION = "com.braintreepayments.demo.samsungpay.EXTRA_AUTHORIZATION";
+    private static final String EXTRA_ENDPOINT = "com.braintreepayments.demo.samsungpay.EXTRA_ENDPOINT";
 
     private static final String PRODUCTION_TOKENIZATION_KEY = "production_t2wns2y2_dfy45jdj3dxkmz5m";
     private static final String SANDBOX_TOKENIZATION_KEY = "sandbox_tmxhyf7d_dcpspy2brwdjr3qn";
@@ -48,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private static final String PRODUCTION_ENDPOINT = "https://executive-sample-merchant.herokuapp.com";
     private static final String SANDBOX_ENDPOINT = "https://braintree-sample-merchant.herokuapp.com";
 
-    private CheckBox mUseProduction;
+    private RadioGroup mEnvironmentGroup;
     private Button mTokenizeButton;
     private Button mTransactButton;
     private BraintreeFragment mBraintreeFragment;
@@ -66,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mUseProduction = findViewById(R.id.use_production);
+        mEnvironmentGroup = findViewById(R.id.environment_group);
         mTokenizeButton = findViewById(R.id.samsung_pay_tokenize);
         mTransactButton = findViewById(R.id.samsung_pay_transact);
         mBillingAddressDetails = findViewById(R.id.billing_address_details);
@@ -74,26 +77,34 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         mNonceDetails = findViewById(R.id.nonce_details);
         mNonceDetails.setVisibility(View.VISIBLE);
 
+        Bundle extras = getIntent().getExtras();
+        mAuthorization = extras.getString(EXTRA_AUTHORIZATION, SANDBOX_TOKENIZATION_KEY);
+        mEndpoint = extras.getString(EXTRA_ENDPOINT, SANDBOX_ENDPOINT);
+
+        mEnvironmentGroup.check(PRODUCTION_TOKENIZATION_KEY.equals(mAuthorization) ? R.id.production : R.id.sandbox);
+        mEnvironmentGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                Intent intent = getIntent();
+                if (checkedId == R.id.production) {
+                    intent.putExtra(EXTRA_AUTHORIZATION, PRODUCTION_TOKENIZATION_KEY);
+                    intent.putExtra(EXTRA_ENDPOINT, PRODUCTION_ENDPOINT);
+                } else {
+                    intent.putExtra(EXTRA_AUTHORIZATION, SANDBOX_TOKENIZATION_KEY);
+                    intent.putExtra(EXTRA_ENDPOINT, SANDBOX_ENDPOINT);
+                }
+
+                startActivity(intent);
+                finish();
+            }
+        });
+
         startBraintree();
     }
 
     private void startBraintree() {
         mTokenizeButton.setEnabled(false);
         mTransactButton.setEnabled(false);
-
-        if (mBraintreeFragment != null) {
-            getFragmentManager().beginTransaction()
-                    .remove(mBraintreeFragment)
-                    .commit();
-        }
-
-        if (mUseProduction.isChecked()) {
-            mAuthorization = PRODUCTION_TOKENIZATION_KEY;
-            mEndpoint = PRODUCTION_ENDPOINT;
-        } else {
-            mAuthorization = SANDBOX_TOKENIZATION_KEY;
-            mEndpoint = SANDBOX_ENDPOINT;
-        }
 
         try {
             mBraintreeFragment = BraintreeFragment.newInstance(this, mAuthorization);
@@ -181,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             public void onResult(String controlId, final CustomSheet customSheet) {
                 Log.d("billing sheet updated", controlId);
 
-                customSheet.updateControl(billingAddressControl);
                 mPaymentManager.updateSheet(customSheet);
             }
         });
@@ -194,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             public void onResult(String controlId, final CustomSheet customSheet) {
                 Log.d("shipping sheet updated", controlId);
 
-                customSheet.updateControl(shippingAddressControl);
                 mPaymentManager.updateSheet(customSheet);
             }
         });
