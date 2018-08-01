@@ -75,36 +75,38 @@ artifacts {
     archives sourcesJar
 }
 
-signing {
-    required { !version.endsWith("SNAPSHOT") }
-    sign configurations.archives
-}
-
-def sonatypeUsername = System.env['SONATYPE_USERNAME']
-def sonatypePassword = System.env['SONATYPE_PASSWORD']
-
-nexusStaging {
-    packageGroup = "com.braintreepayments"
-    username = sonatypeUsername
-    password = sonatypePassword
-}
-
-uploadArchives.doFirst {
-    GradleException("Release is blocked on waiting for Braintree Android release")
-}
+// TODO uncomment before release
+//signing {
+//    required { !version.endsWith("SNAPSHOT") }
+//    sign configurations.archives
+//}
+//
+//def sonatypeUsername = System.env['SONATYPE_USERNAME']
+//def sonatypePassword = System.env['SONATYPE_PASSWORD']
+//
+//nexusStaging {
+//    packageGroup = "com.braintreepayments"
+//    username = sonatypeUsername
+//    password = sonatypePassword
+//}
 
 uploadArchives {
     repositories {
         mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            // TODO uncomment before release
+            // beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            //
+            // repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+            //     authentication(userName: sonatypeUsername, password: sonatypePassword)
+            // }
+            //
+            // snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+            //    authentication(userName: sonatypeUsername, password: sonatypePassword)
+            // }
 
-            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
-
-            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
+            // TODO delete this test snapshotRepository before release
+             snapshotRepository(url: '/tmp/maven') {
+             }
 
             pom.setArtifactId 'samsung-pay'
 
