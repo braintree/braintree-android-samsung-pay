@@ -32,22 +32,12 @@ android {
             debuggable true
         }
     }
-
-    productFlavors {
-        flavorDimensions("environment")
-        staging {
-        }
-
-        production {
-        }
-    }
 }
 
 dependencies {
     implementation 'com.braintreepayments.api:braintree:2.14.3-SNAPSHOT'
 
-    productionImplementation(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
-    stagingImplementation(group: 'com.samsung.android', name: 'samsungpay-staging', ext: 'jar')
+    api(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
 
     implementation 'com.android.support:support-annotations:27.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
