@@ -13,12 +13,14 @@ class LaunchActivity : AppCompatActivity() {
 
     fun launchJavaDemo(v: View) {
         val intent = Intent(this, MainActivity::class.java)
+            .putExtras(Bundle())
 
         startActivity(intent)
     }
 
     fun launchKotlinDemo(v: View) {
         val intent = Intent(this, MainKotlinActivity::class.java)
+            .putExtras(Bundle())
 
         startActivity(intent)
     }
