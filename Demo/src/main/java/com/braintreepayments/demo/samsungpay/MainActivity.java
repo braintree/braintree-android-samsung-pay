@@ -250,12 +250,12 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         if (billingAddress != null) {
             mBillingAddressDetails.setText(TextUtils.join("\n", Arrays.asList(
                     "Billing Address",
-                    "Addressee: " + shippingAddress.getAddressee(),
-                    "AddressLine1: " + shippingAddress.getAddressLine1(),
-                    "AddressLine2: " + shippingAddress.getAddressLine2(),
-                    "City: " + shippingAddress.getCity(),
-                    "PostalCode: " + shippingAddress.getPostalCode(),
-                    "CountryCode: " + shippingAddress.getCountryCode()
+                    "Addressee: " + billingAddress.getAddressee(),
+                    "AddressLine1: " + billingAddress.getAddressLine1(),
+                    "AddressLine2: " + billingAddress.getAddressLine2(),
+                    "City: " + billingAddress.getCity(),
+                    "PostalCode: " + billingAddress.getPostalCode(),
+                    "CountryCode: " + billingAddress.getCountryCode()
             )));
         }
 
