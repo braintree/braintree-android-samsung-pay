@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 version = "0.1.0"
@@ -40,7 +40,7 @@ dependencies {
     api(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
 
     implementation 'com.android.support:support-annotations:27.1.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     testImplementation 'com.google.android.gms:play-services-wallet:11.4.0'
     testImplementation 'junit:junit:4.12'
@@ -70,6 +70,10 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
 }
 
+task samsungPayJar(type: Jar) {
+    archiveName = 'samsungpay-0.0.0.jar'
+}
+
 artifacts {
     archives javadocsJar
     archives sourcesJar
@@ -90,59 +94,115 @@ artifacts {
 //    password = sonatypePassword
 //}
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            // TODO uncomment before release
-            // beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            //
-            // repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-            //     authentication(userName: sonatypeUsername, password: sonatypePassword)
-            // }
-            //
-            // snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-            //    authentication(userName: sonatypeUsername, password: sonatypePassword)
-            // }
+publishing {
+    publications {
+//        braintree(MavenPublication) {
+//            artifact "${project.buildDir}/outputs/aar/${project.name}-Release.aar"
+//            artifact javadocsJar
+//            artifact sourcesJar
+//            groupId 'com.braintreepayments.api'
+//            version android.defaultConfig.versionName
+//        }
 
-            // TODO delete this test snapshotRepository before release
-             snapshotRepository(url: '/tmp/maven') {
-             }
+        samsungPay(MavenPublication) {
+            groupId 'com.braintreepayments.api'
+            artifactId 'samsung-pay'
+            version android.defaultConfig.versionName
 
-            pom.setArtifactId 'samsung-pay'
+            artifact sourcesJar
+            artifact bundleRelease
+            artifact samsungPayJar
 
-            pom.project {
-                name 'samsung-pay'
-                groupId = 'com.braintreepayments.api'
-                version = "${android.defaultConfig.versionName}"
-                packaging 'jar'
-                description 'Samsung Pay Module for Braintree\'s Android SDK.'
-                url 'https://github.com/braintree/braintree-android-samsung-pay'
-
-                scm {
-                    url 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                    connection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                    developerConnection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+            pom.withXml {
+                asNode().children().last() + {
+                    resolveStrategy = Closure.DELEGATE_FIRST
+                    name 'samsung-pay'
+                    description 'Samsung Pay Module for Braintree\'s Android SDK.'
+                    url 'https://github.com/braintree/braintree-android-samsung-pay'
                 }
 
-                developers {
-                    developer {
-                        id 'devs'
-                        name 'Braintree Payments'
-                    }
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                configurations.api.dependencies.each { Dependency dep ->
+                    final dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+                    dependencyNode.appendNode('scope', "compile")
                 }
 
-                licenses {
-                    license {
-                        name 'MIT'
-                        url 'http://opensource.org/licenses/MIT'
-                        distribution 'repo'
-                    }
+                configurations.implementation.dependencies.each { Dependency dep ->
+                    final dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+                    dependencyNode.appendNode('scope', "runtime")
                 }
-            }
-
-            pom.whenConfigured {
-                it.dependencies.removeAll { true }
             }
         }
     }
+
+    repositories {
+        maven {
+            url 'file:///tmp/maven/'
+        }
+    }
 }
+
+
+//uploadArchives {
+//    repositories {
+//        mavenDeployer {
+//            // TODO uncomment before release
+//            // beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+//            //
+//            // repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+//            //     authentication(userName: sonatypeUsername, password: sonatypePassword)
+//            // }
+//            //
+//            // snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+//            //    authentication(userName: sonatypeUsername, password: sonatypePassword)
+//            // }
+//
+//            // TODO delete this test snapshotRepository before release
+//             snapshotRepository(url: '/tmp/maven') {
+//             }
+//
+//            pom.setArtifactId 'samsung-pay'
+//
+//            pom.project {
+//                name 'samsung-pay'
+//                groupId = 'com.braintreepayments.api'
+//                version = "${android.defaultConfig.versionName}"
+//                packaging 'jar'
+//                description 'Samsung Pay Module for Braintree\'s Android SDK.'
+//                url 'https://github.com/braintree/braintree-android-samsung-pay'
+//
+//                scm {
+//                    url 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+//                    connection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+//                    developerConnection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+//                }
+//
+//                developers {
+//                    developer {
+//                        id 'devs'
+//                        name 'Braintree Payments'
+//                    }
+//                }
+//
+//                licenses {
+//                    license {
+//                        name 'MIT'
+//                        url 'http://opensource.org/licenses/MIT'
+//                        distribution 'repo'
+//                    }
+//                }
+//            }
+//
+//            pom.whenConfigured {
+//                it.dependencies.removeAll { true }
+//            }
+//        }
+//    }
+//}
