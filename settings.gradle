@@ -1,1 +1,1 @@
-include ':SamsungPay', ':Demo'
+include ':SamsungPay', ':Demo', ':SamsungPayJar'
