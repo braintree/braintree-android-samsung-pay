@@ -80,6 +80,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
     private lateinit var paymentMethodNonce: PaymentMethodNonce
     private lateinit var authorization: String
     private lateinit var endpoint: String
+    private var totalAmount = 1.0
 
     private val customSheet: CustomSheet
         get() {
@@ -108,7 +109,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
             amountBoxControl.addItem("taxId", "Tax", 1.0, "")
             amountBoxControl.addItem("shippingId", "Shipping", 10.0, "")
             amountBoxControl.addItem("interestId", "Interest [ex]", 0.0, "")
-            amountBoxControl.setAmountTotal(1.0, AmountConstants.FORMAT_TOTAL_PRICE_ONLY)
+            amountBoxControl.setAmountTotal(totalAmount, AmountConstants.FORMAT_TOTAL_PRICE_ONLY)
             amountBoxControl.addItem(3, "fuelId", "FUEL", 0.0, "Pending")
             sheet.addControl(amountBoxControl)
 
@@ -330,7 +331,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         }
 
         getApiClient(endpoint)?.createTransaction(
-            paymentMethodNonce.nonce, "SamsungPayFD", callback)
+            paymentMethodNonce.nonce, "SamsungPayFD", totalAmount.toString(), callback)
     }
 
     private fun showDialog(message: String) {
