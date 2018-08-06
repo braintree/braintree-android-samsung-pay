@@ -56,15 +56,11 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
                 }
             }
 
-            if (sApiClient == null) {
-                sApiClient = RestAdapter.Builder()
-                    .setEndpoint(endpoint!!)
-                    .setRequestInterceptor(ApiClientRequestInterceptor())
-                    .build()
-                    .create<ApiClient>(ApiClient::class.java)
-            }
-
-            return sApiClient
+            return RestAdapter.Builder()
+                .setEndpoint(endpoint!!)
+                .setRequestInterceptor(ApiClientRequestInterceptor())
+                .build()
+                .create<ApiClient>(ApiClient::class.java)
         }
     }
 

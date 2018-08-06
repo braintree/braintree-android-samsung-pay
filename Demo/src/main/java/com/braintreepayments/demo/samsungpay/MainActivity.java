@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private Button mTokenizeButton;
     private Button mTransactButton;
     private BraintreeFragment mBraintreeFragment;
-    private static ApiClient sApiClient;
     private TextView mBillingAddressDetails;
     private TextView mShippingAddressDetails;
     private TextView mNonceDetails;
@@ -359,15 +358,11 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             }
         }
 
-        if (sApiClient == null) {
-            sApiClient = new RestAdapter.Builder()
+        return new RestAdapter.Builder()
                     .setEndpoint(endpoint)
                     .setLogLevel(RestAdapter.LogLevel.FULL)
                     .setRequestInterceptor(new ApiClientRequestInterceptor())
                     .build()
                     .create(ApiClient.class);
-        }
-
-        return sApiClient;
     }
 }
