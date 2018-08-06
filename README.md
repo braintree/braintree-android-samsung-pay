@@ -10,7 +10,7 @@ Add the dependency in your `build.gradle`:
 
 ```groovy
 dependencies {
-  compile 'com.braintreepayments.api:samsung-pay:0.1.0'
+  implementation 'com.braintreepayments.api:samsung-pay:0.1.0'
 }
 ```
 
@@ -18,7 +18,7 @@ To use the latest build from the `master` branch use:
 
 ```groovy
 dependencies {
-  compile 'com.braintreepayments.api:samsung-pay:0.1.1-SNAPSHOT'
+  implementation 'com.braintreepayments.api:samsung-pay:0.1.1-SNAPSHOT'
 }
 ```
 
