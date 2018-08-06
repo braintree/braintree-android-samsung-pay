@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                             @Override
                             public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
                                 AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
-                                mTotalAmount = 0.02;
+                                mTotalAmount = 2d;
                                 amountBoxControl.setAmountTotal(mTotalAmount, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
 
                                 customSheet.updateControl(amountBoxControl);
@@ -212,7 +212,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         sheet.addControl(shippingAddressControl);
 
         AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
-        mTotalAmount = 0.01;
         amountBoxControl.setAmountTotal(mTotalAmount, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
         sheet.addControl(amountBoxControl);
 
@@ -363,6 +362,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         if (sApiClient == null) {
             sApiClient = new RestAdapter.Builder()
                     .setEndpoint(endpoint)
+                    .setLogLevel(RestAdapter.LogLevel.FULL)
                     .setRequestInterceptor(new ApiClientRequestInterceptor())
                     .build()
                     .create(ApiClient.class);
