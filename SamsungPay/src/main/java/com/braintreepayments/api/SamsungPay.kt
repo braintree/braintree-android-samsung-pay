@@ -39,6 +39,12 @@ class SamsungPay {
     companion object {
         const val SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
 
+        /**
+         * Forwards the user to the Samsung Pay update page.
+         * This should be invoked when Samsung Pay returns the [ERROR_SPAY_APP_NEED_TO_UPDATE] result from [isReadyToPay].
+         *
+         * @param [fragment] [BraintreeFragment]
+         */
         @JvmStatic
         fun goToUpdatePage(fragment: BraintreeFragment) {
             getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
@@ -48,6 +54,12 @@ class SamsungPay {
             })
         }
 
+        /**
+         * Forwards the user to the Samsung Pay activate page.
+         * This should be invoked when Samsung Pay returns the [ERROR_SPAY_SETUP_NOT_COMPLETED] result from [isReadyToPay].
+         *
+         * @param [fragment] [BraintreeFragment]
+         */
         @JvmStatic
         fun activateSamsungPay(fragment: BraintreeFragment) {
             getPartnerInfo(fragment, BraintreeResponseListener { braintreePartnerInfo ->
@@ -65,10 +77,15 @@ class SamsungPay {
          * will be posted to the [BraintreeErrorListener] callback attached to the instance of
          * [BraintreeFragment] passed in here.
          *
-         * TODO(Modify this s.t. the response listener also passes the reason for readiness, so that the merchant can take available actions)
+         * @param [fragment] [BraintreeFragment]
+         * @param [listener] Callback with [SamsungPayAvailability]. Properties returned are:
          *
-         * @param [fragment] TODO
-         * @param [listener] TODO
+         * SPAY_READY - Samsung Pay is ready to handle the payment.
+         *
+         * SPAY_NOT_READY - Samsung Pay cannot handle the payment currently. See [SamsungPayAvailability.reason] for more
+         * details on why Samsung Pay is not ready.
+         *
+         * SPAY_NOT_SUPPORTED - Samsung Pay is not supported on the current device.
          */
         @JvmStatic
         fun isReadyToPay(fragment: BraintreeFragment, listener: BraintreeResponseListener<SamsungPayAvailability>) {
@@ -136,11 +153,15 @@ class SamsungPay {
         }
 
         /**
-         * Creates a {@link CustomSheetPaymentInfo.Builder} with the merchant ID, merchant name, and allowed
-         * card brands populated by the Braintree merchant account configuration.
-         * @param fragment - {@link BraintreeFragment}
-         * @param listener {@link BraintreeResponseListener<CustomSheetPaymentInfo.Builder>} - listens for
-         * the Braintree flavored {@link CustomSheetPaymentInfo.Builder}.
+         * Creates a [CustomSheetPaymentInfo.Builder] with Braintree properties such as the merchant ID, merchant name,
+         * and allowed card brands.
+         *
+         * The builder returned from the [BraintreeResponseListener] can be used to set merchant properties such as the
+         * custom sheet, address requirements, and etc.
+         *
+         * @param [fragment] [BraintreeFragment]
+         * @param [listener] Returns a [CustomSheetPaymentInfo.Builder] that can be modified
+         * for the merchant's requirements.
          */
         @JvmStatic
         fun createPaymentInfo(
@@ -157,9 +178,12 @@ class SamsungPay {
         }
 
         /**
-         * Creates a [PaymentManager] that can communicate with Braintree.
+         * Creates a [PaymentManager] instance that can communicate with Braintree.
+         *
+         * This instance should be used to update Samsung Pay's custom sheets and sheet controls.
+         *
          * @param [fragment] [BraintreeFragment]
-         * @param [listener] Returns the [PaymentManager]
+         * @param [listener] Returns the [PaymentManager] instance.
          */
         @JvmStatic
         fun createPaymentManager(
@@ -173,32 +197,20 @@ class SamsungPay {
         }
 
         /**
-         * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the Samsung Pay flow
-         * with some custom UI provided by you.
+         * Takes a [CustomSheetInfo.Builder] and starts the Samsung Pay flow with some custom sheet provided.
          *
-         * @param [fragment] TODO
-         * @param [customSheetPaymentInfo] TODO
-         * @param [listener] TODO
-         */
-        @JvmStatic
-        fun requestPayment(
-            fragment: BraintreeFragment,
-            customSheetPaymentInfo: CustomSheetPaymentInfo,
-            listener: SamsungPayCustomTransactionUpdateListener
-        ) {
-            createPaymentManager(fragment, BraintreeResponseListener {
-                requestPayment(fragment, it, customSheetPaymentInfo, listener)
-            })
-        }
-
-        /**
-         * [requestPayment] takes a CustomSheetInfo.Builder and starts intitiates the Samsung Pay flow
-         * with some custom UI provided by you.
+         * @param [fragment] [BraintreeFragment]
+         * @param [paymentManager] [PaymentManager] returned from [createPaymentManager].
+         * Used to update the Samsung Pay custom sheets.
+         * @param [customSheetPaymentInfo] The [CustomSheetPaymentInfo] returned by [createPaymentInfo], and modified for the
+         * merchant's extra requirements.
+         * @param [listener] [SamsungPayCustomTransactionUpdateListener]. Contains two methods to listen to:
          *
-         * @param [fragment] TODO
-         * @param [paymentManager] TODO
-         * @param [customSheetPaymentInfo] TODO
-         * @param [listener] TODO
+         * [SamsungPayCustomTransactionUpdateListener.onSuccess] which gets called when the Samsung Pay flow succeeded.
+         *
+         * [SamsungPayCustomTransactionUpdateListener.onCardInfoUpdated] which gets called when the customer selects
+         * a different card payment method. This call must complete with a call to [PaymentManager.updateSheet] or one of the
+         * alternatives.
          */
         @JvmStatic
         fun requestPayment(
