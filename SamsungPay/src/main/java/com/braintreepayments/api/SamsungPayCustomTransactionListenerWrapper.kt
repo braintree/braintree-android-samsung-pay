@@ -20,6 +20,7 @@ internal class SamsungPayCustomTransactionListenerWrapper(
     override fun onSuccess(response: CustomSheetPaymentInfo?, paymentCredential: String?, extraPaymentData: Bundle?) {
         if (paymentCredential != null) {
             fragment.postCallback(SamsungPayNonce.fromPaymentData(paymentCredential))
+            fragment.sendAnalyticsEvent("samsung-pay.request-payment.success")
         }
 
         if (response != null) {
@@ -32,8 +33,10 @@ internal class SamsungPayCustomTransactionListenerWrapper(
     override fun onFailure(errorCode: Int, extras: Bundle?) {
         if (errorCode == SpaySdk.ERROR_USER_CANCELED) {
             fragment.postCancelCallback(BraintreeRequestCodes.SAMSUNG_PAY)
+            fragment.sendAnalyticsEvent("samsung-pay.request-payment.user-canceled")
         } else {
             fragment.postCallback(SamsungPayException(errorCode, extras))
+            fragment.sendAnalyticsEvent("samsung-pay.request-payment.failed")
         }
     }
 
