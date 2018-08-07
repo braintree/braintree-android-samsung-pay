@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                             @Override
                             public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
                                 AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
-                                amountBoxControl.setAmountTotal(0.02, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
+                                amountBoxControl.setAmountTotal(1.0, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
 
                                 customSheet.updateControl(amountBoxControl);
                                 mPaymentManager.updateSheet(customSheet);
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         sheet.addControl(shippingAddressControl);
 
         AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
-        amountBoxControl.setAmountTotal(0.01, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
+        amountBoxControl.setAmountTotal(1.0, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
         sheet.addControl(amountBoxControl);
 
         return sheet;
