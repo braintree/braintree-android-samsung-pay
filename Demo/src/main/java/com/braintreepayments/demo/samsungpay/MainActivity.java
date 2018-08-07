@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private Button mTokenizeButton;
     private Button mTransactButton;
     private BraintreeFragment mBraintreeFragment;
-    private static ApiClient sApiClient;
     private TextView mBillingAddressDetails;
     private TextView mShippingAddressDetails;
     private TextView mNonceDetails;
@@ -63,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private PaymentMethodNonce mPaymentMethodNonce;
     private String mAuthorization;
     private String mEndpoint;
+    private Double mTotalAmount = 1d;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,7 +170,8 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                             @Override
                             public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
                                 AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
-                                amountBoxControl.setAmountTotal(0.02, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
+                                mTotalAmount = 2d;
+                                amountBoxControl.setAmountTotal(mTotalAmount, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
 
                                 customSheet.updateControl(amountBoxControl);
                                 mPaymentManager.updateSheet(customSheet);
@@ -210,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         sheet.addControl(shippingAddressControl);
 
         AmountBoxControl amountBoxControl = new AmountBoxControl("amountID", "USD");
-        amountBoxControl.setAmountTotal(0.01, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
+        amountBoxControl.setAmountTotal(mTotalAmount, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
         sheet.addControl(amountBoxControl);
 
         return sheet;
@@ -325,7 +326,10 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         };
 
         getApiClient(mEndpoint)
-                .createTransaction(mPaymentMethodNonce.getNonce(), "SamsungPayFD", callback);
+                .createTransaction(mPaymentMethodNonce.getNonce(),
+                        "SamsungPayFD",
+                        mTotalAmount.toString(),
+                        callback);
     }
 
     protected void showDialog(String message) {
@@ -354,14 +358,11 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             }
         }
 
-        if (sApiClient == null) {
-            sApiClient = new RestAdapter.Builder()
+        return new RestAdapter.Builder()
                     .setEndpoint(endpoint)
+                    .setLogLevel(RestAdapter.LogLevel.FULL)
                     .setRequestInterceptor(new ApiClientRequestInterceptor())
                     .build()
                     .create(ApiClient.class);
-        }
-
-        return sApiClient;
     }
 }
