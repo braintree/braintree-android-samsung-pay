@@ -46,7 +46,6 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
 
         private val PRODUCTION_ENDPOINT = "https://executive-sample-merchant.herokuapp.com"
         private val SANDBOX_ENDPOINT = "https://braintree-sample-merchant.herokuapp.com"
-        private var sApiClient: ApiClient? = null
 
         internal fun getApiClient(endpoint: String?): ApiClient? {
             class ApiClientRequestInterceptor : RequestInterceptor {
@@ -56,15 +55,11 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
                 }
             }
 
-            if (sApiClient == null) {
-                sApiClient = RestAdapter.Builder()
+            return RestAdapter.Builder()
                     .setEndpoint(endpoint!!)
                     .setRequestInterceptor(ApiClientRequestInterceptor())
                     .build()
                     .create<ApiClient>(ApiClient::class.java)
-            }
-
-            return sApiClient
         }
     }
 
