@@ -2,16 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
 android {
-    compileSdkVersion 28
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 28
-        versionCode 1
-        versionName "0.1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
     }
 
     buildTypes {
@@ -24,59 +22,18 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     api(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
 }
 
 uploadArchives {
     repositories {
         mavenDeployer {
-            // TODO uncomment before release
-            // beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            //
-            // repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-            //     authentication(userName: sonatypeUsername, password: sonatypePassword)
-            // }
-            //
-            // snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-            //    authentication(userName: sonatypeUsername, password: sonatypePassword)
-            // }
-
-            // TODO delete this test snapshotRepository before release
-            repository(url: 'file:///tmp/maven') {
-            }
-
             pom.setArtifactId 'samsung-pay-jar'
 
             pom.project {
                 name 'samsung-pay-jar'
-                groupId = 'com.braintreepayments.api'
-                version = "${android.defaultConfig.versionName}"
-                packaging 'jar'
+                version android.defaultConfig.versionName
                 description 'Samsung Pay Jar for Braintree\'s Android SDK.'
-                url 'https://github.com/braintree/braintree-android-samsung-pay'
-
-                scm {
-                    url 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                    connection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                    developerConnection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                }
-
-                developers {
-                    developer {
-                        id 'devs'
-                        name 'Braintree Payments'
-                    }
-                }
-
-                licenses {
-                    license {
-                        name 'MIT'
-                        url 'http://opensource.org/licenses/MIT'
-                        distribution 'repo'
-                    }
-                }
             }
         }
     }

@@ -3,17 +3,15 @@ apply plugin: 'kotlin-android'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
-version = "0.1.0"
-
 android {
-    buildToolsVersion '27.0.3'
-    compileSdkVersion 27
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 27
-        versionCode = 3
-        versionName = version
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
 
         consumerProguardFiles 'proguard.pro'
     }
@@ -39,7 +37,7 @@ dependencies {
     api project(":SamsungPayJar")
 
     implementation 'com.android.support:support-annotations:27.1.0'
-    api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
 
     testImplementation 'com.google.android.gms:play-services-wallet:11.4.0'
     testImplementation 'junit:junit:4.12'
@@ -77,51 +75,17 @@ artifacts {
 uploadArchives {
     repositories {
         mavenDeployer {
-             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-             repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                 authentication(userName: sonatypeUsername, password: sonatypePassword)
-             }
-
-             snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
-             }
-
             pom.setArtifactId 'samsung-pay'
 
             pom.project {
                 name 'samsung-pay'
-                groupId = 'com.braintreepayments.api'
-                version = "${android.defaultConfig.versionName}"
-                packaging 'jar'
+                version android.defaultConfig.versionName
                 description 'Samsung Pay Module for Braintree\'s Android SDK.'
-                url 'https://github.com/braintree/braintree-android-samsung-pay'
-
-                scm {
-                    url 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                    connection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                    developerConnection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
-                }
-
-                developers {
-                    developer {
-                        id 'devs'
-                        name 'Braintree Payments'
-                    }
-                }
-
-                licenses {
-                    license {
-                        name 'MIT'
-                        url 'http://opensource.org/licenses/MIT'
-                        distribution 'repo'
-                    }
-                }
             }
 
             pom.whenConfigured { pom ->
                 pom.dependencies.each { dependency ->
-                    if (dependency.artifact == 'samsung-pay-jar') {
+                    if (dependency.artifactId == 'samsung-pay-jar') {
                         dependency.optional = true
                     }
                 }
