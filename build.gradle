@@ -96,14 +96,4 @@ allprojects {
         }
         sign configurations.archives
     }
-
-    ext {
-        minSdkVersion = 16
-        compileSdkVersion = 27
-        targetSdkVersion = 27
-        versionCode = 1
-        kotlin_version = '1.2.51'
-        versionName = '0.1.0-SNAPSHOT'
-        buildToolsVersion = '27.0.3'
-    }
 }
