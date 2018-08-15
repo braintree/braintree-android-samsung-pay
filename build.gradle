@@ -65,9 +65,9 @@ allprojects {
                     url 'https://github.com/braintree/braintree-android-samsung-pay'
 
                     scm {
-                        url 'scm:git@github.com:braintree/braintree_android.git'
-                        connection 'scm:git@github.com:braintree/braintree_android.git'
-                        developerConnection 'scm:git@github.com:braintree/braintree_android.git'
+                        url 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                        connection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                        developerConnection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
                     }
 
                     developers {
