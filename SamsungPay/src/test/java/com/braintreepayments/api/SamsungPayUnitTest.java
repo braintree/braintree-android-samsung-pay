@@ -528,7 +528,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -574,7 +574,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -636,7 +636,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
