@@ -72,6 +72,12 @@ artifacts {
     archives sourcesJar
 }
 
+nexusStaging {
+    packageGroup = "com.braintreepayments"
+    delayBetweenRetriesInMillis = 10000
+}
+
+group = 'com.braintreepayments.api'
 uploadArchives {
     repositories {
         mavenDeployer {
@@ -81,6 +87,30 @@ uploadArchives {
                 name 'samsung-pay'
                 version android.defaultConfig.versionName
                 description 'Samsung Pay Module for Braintree\'s Android SDK.'
+                groupId 'com.braintreepayments.api'
+                packaging 'jar'
+                url 'https://github.com/braintree/braintree-android-samsung-pay'
+
+                scm {
+                    url 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                    connection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                    developerConnection 'scm:git@github.com:braintree/braintree-android-samsung-pay.git'
+                }
+
+                developers {
+                    developer {
+                        id 'devs'
+                        name 'Braintree Payments'
+                    }
+                }
+
+                licenses {
+                    license {
+                        name 'MIT'
+                        url 'http://opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
             }
 
             pom.whenConfigured { pom ->
