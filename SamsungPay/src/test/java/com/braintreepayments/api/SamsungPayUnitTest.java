@@ -436,16 +436,6 @@ public class SamsungPayUnitTest {
         stubPaymentManager(mockedManager);
         CustomSheetPaymentInfo paymentInfo = getCustomSheetPaymentInfo();
 
-        SamsungPay.requestPayment(mBraintreeFragment, paymentInfo, mock(SamsungPayCustomTransactionUpdateListener.class));
-
-        verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
-    }
-
-    @Test
-    public void requestPayment_whenPassingPaymentManager_usesSuppliedPaymentManager() {
-        PaymentManager mockedManager = mock(PaymentManager.class);
-        CustomSheetPaymentInfo paymentInfo = getCustomSheetPaymentInfo();
-
         SamsungPay.requestPayment(mBraintreeFragment, mockedManager, paymentInfo, mock(SamsungPayCustomTransactionUpdateListener.class));
 
         verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
@@ -462,7 +452,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
 
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -485,7 +475,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -512,7 +502,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -560,7 +550,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<Integer> requestCodeCaptor = ArgumentCaptor.forClass(Integer.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 
@@ -606,7 +596,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<SamsungPayNonce> paymentMethodNonceCaptor = ArgumentCaptor.forClass(SamsungPayNonce.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay.requestPayment(mBraintreeFragment, getCustomSheetPaymentInfo(), mockedListener);
+        SamsungPay.requestPayment(mBraintreeFragment, mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
 

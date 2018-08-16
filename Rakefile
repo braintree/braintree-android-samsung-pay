@@ -50,7 +50,7 @@ task :release_braintree_samsung_pay do
   sh "./gradlew clean :SamsungPay:uploadArchives"
   sh "./gradlew closeAndReleaseRepository"
   sleep 600
-  puts "Braintree samsung pay module have been released"
+  puts "Braintree Samsung Pay module have been released"
 end
 
 def prompt_for_sonatype_username_and_password
@@ -97,7 +97,7 @@ end
 
 def post_release(version)
   if !`git remote`.include?("github")
-    sh "git remote add github https://github.com/braintree/braintree_android_samsung_pay.git"
+    sh "git remote add github https://github.com/braintree/braintree-android-samsung-pay.git"
   end
 
   puts "\nArchives are uploaded! Committing and tagging #{version} and preparing for the next development iteration"
@@ -123,7 +123,7 @@ end
 def get_current_version
   current_version = nil
   File.foreach("build.gradle") do |line|
-    if match = line.match(/version = '(\d+\.\d+\.\d+(-SNAPSHOT)?)'/)
+    if match = line.match(/versionName = '(\d+\.\d+\.\d+(-SNAPSHOT)?)'/)
       current_version = match.captures
     end
   end
@@ -146,7 +146,7 @@ end
 def update_version(version)
   IO.write("SamsungPay/build.gradle",
     File.open("SamsungPay/build.gradle") do |file|
-      file.read.gsub(/version = '\d+\.\d+\.\d+(-SNAPSHOT)?'/, "version = '#{version}'")
+      file.read.gsub(/versionName = '\d+\.\d+\.\d+(-SNAPSHOT)?'/, "versionName = '#{version}'")
     end
   )
 end

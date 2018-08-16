@@ -30,7 +30,7 @@ dependencies {
     implementation project(':SamsungPay')
 
     implementation 'com.braintreepayments.api:braintree:2.14.3-SNAPSHOT'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.ext.kotlinVersion}"
 
     implementation(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
 
