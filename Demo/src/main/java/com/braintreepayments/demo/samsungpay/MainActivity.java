@@ -317,9 +317,15 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
             public void failure(RetrofitError error) {
                 showSpinner(false);
 
-                showDialog("Unable to create a transaction. Response Code: " +
-                        error.getResponse().getStatus() + " Response body: " +
-                        error.getResponse().getBody());
+                if (error.getKind() == RetrofitError.Kind.NETWORK) {
+                    showDialog("Unable to create a transaction. Network error occurred.");
+                } else if (error.getKind() == RetrofitError.Kind.HTTP) {
+                    showDialog("Unable to create a transaction. Response Code: " +
+                            error.getResponse().getStatus() + " Response body: " +
+                            error.getResponse().getBody());
+                } else {
+                    showDialog("Unable to create a transaction. An internal error occurred.");
+                }
             }
         };
 

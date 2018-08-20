@@ -316,11 +316,14 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
             override fun failure(error: RetrofitError) {
                 showSpinner(false)
 
-                showDialog(
-                    "Unable to create a transaction. Response Code: " +
+                when (error.kind) {
+                    RetrofitError.Kind.NETWORK -> showDialog("Unable to create a transaction. Network error occurred.")
+                    RetrofitError.Kind.HTTP -> showDialog("Unable to create a transaction. Response Code: " +
                             error.response.status + " Response body: " +
                             error.response.body
-                )
+                    )
+                    else -> showDialog("Unable to create a transaction. An internal error occurred.")
+                }
             }
         }
 
