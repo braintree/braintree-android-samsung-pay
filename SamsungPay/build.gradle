@@ -72,23 +72,45 @@ artifacts {
     archives sourcesJar
 }
 
+signing {
+  required { !version.endsWith("SNAPSHOT") }
+  sign configurations.archives
+}
+
+def sonatypeUsername = System.env['SONATYPE_USERNAME']
+def sonatypePassword = System.env['SONATYPE_PASSWORD']
+
 nexusStaging {
     packageGroup = "com.braintreepayments"
     delayBetweenRetriesInMillis = 10000
+    username = sonatypeUsername
+    password = sonatypePassword
 }
 
 group = 'com.braintreepayments.api'
 uploadArchives {
     repositories {
         mavenDeployer {
+            beforeDeployment {
+              MavenDeployment deployment -> signing.signPom(deployment)
+            }
+
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+              authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+              authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
             pom.setArtifactId 'samsung-pay'
 
             pom.project {
                 name 'samsung-pay'
-                version android.defaultConfig.versionName
-                description 'Samsung Pay Module for Braintree\'s Android SDK.'
                 groupId 'com.braintreepayments.api'
+                version android.defaultConfig.versionName
                 packaging 'jar'
+                description 'Samsung Pay Module for Braintree\'s Android SDK.'
                 url 'https://github.com/braintree/braintree-android-samsung-pay'
 
                 scm {

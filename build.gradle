@@ -1,8 +1,5 @@
 apply plugin: 'io.codearte.nexus-staging'
 
-def sonatypeUsername = System.env['SONATYPE_USERNAME']
-def sonatypePassword = System.env['SONATYPE_PASSWORD']
-
 allprojects {
     ext {
         minSdkVersion = 16
@@ -41,36 +38,5 @@ allprojects {
         maven {
             url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
-    }
-
-    apply plugin: 'maven'
-
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                if (sonatypeUsername == null) {
-                    repository(url: 'file:///tmp/maven')
-                } else {
-                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                        authentication(userName: sonatypeUsername, password: sonatypePassword)
-                    }
-                    snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-                        authentication(userName: sonatypeUsername, password: sonatypePassword)
-                    }
-                }
-
-
-            }
-        }
-    }
-
-    apply plugin: 'signing'
-    signing {
-        required {
-            sonatypeUsername != null && !version.endsWith("SNAPSHOT")
-        }
-        sign configurations.archives
     }
 }
