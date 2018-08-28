@@ -144,8 +144,8 @@ def increment_version_code
 end
 
 def update_version(version)
-  IO.write("SamsungPay/build.gradle",
-    File.open("SamsungPay/build.gradle") do |file|
+  IO.write("build.gradle",
+    File.open("build.gradle") do |file|
       file.read.gsub(/versionName = '\d+\.\d+\.\d+(-SNAPSHOT)?'/, "versionName = '#{version}'")
     end
   )
