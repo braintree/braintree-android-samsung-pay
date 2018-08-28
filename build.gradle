@@ -7,7 +7,7 @@ allprojects {
         targetSdkVersion = 27
         versionCode = 1
         kotlinVersion = kotlin_version
-        versionName = '0.0.1-SNAPSHOT'
+        versionName = '0.1.0'
         buildToolsVersion = '27.0.3'
     }
 }
