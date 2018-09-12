@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="com.braintreepayments.demo.samsungpay"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
@@ -19,7 +20,7 @@
 
         <activity android:name=".MainKotlinActivity"/>
         <activity android:name=".MainActivity"/>
-        <meta-data android:name="debug_mode" android:value="Y" />
+        <meta-data android:name="debug_mode" android:value="Y" tools:replace="android:value"/>
         <meta-data android:name="spay_debug_api_key" android:value="588f2ecd9d9d4b94805494714f3f7e27" />
     </application>
 
