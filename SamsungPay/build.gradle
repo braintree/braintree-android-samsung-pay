@@ -46,13 +46,13 @@ dependencies {
     testImplementation(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
     testImplementation 'com.google.android.gms:play-services-wallet:11.4.0'
     testImplementation 'junit:junit:4.12'
-    testImplementation 'com.android.support.test:runner:1.0.0'
-    testImplementation 'com.android.support.test:rules:1.0.0'
+    testImplementation 'com.android.support.test:runner:1.0.2'
+    testImplementation 'com.android.support.test:rules:1.0.2'
     testImplementation 'org.powermock:powermock-module-junit4:1.7.4'
     testImplementation 'org.powermock:powermock-module-junit4-rule:1.7.4'
     testImplementation 'org.powermock:powermock-api-mockito2:1.7.4'
     testImplementation 'org.powermock:powermock-classloading-xstream:1.7.4'
-    testImplementation "org.robolectric:robolectric:4.0-alpha-3"
+    testImplementation 'org.robolectric:robolectric:4.0-alpha-3'
 }
 
 /* maven deploy + signing */
