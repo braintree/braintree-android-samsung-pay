@@ -11,7 +11,6 @@ import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateLis
 import com.braintreepayments.api.internal.ClassHelper;
 import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.SamsungPayNonce;
-import com.braintreepayments.api.samsungpay.BuildConfig;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
@@ -35,7 +34,6 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +62,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
         com.samsung.android.sdk.samsungpay.v2.SamsungPay.class,
         PaymentManager.class
 })
-@Config(constants = BuildConfig.class)
 public class SamsungPayUnitTest {
 
     @Rule
