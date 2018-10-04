@@ -38,7 +38,7 @@ android {
 
 dependencies {
     implementation 'com.braintreepayments.api:braintree:2.16.0'
-    implementation 'com.android.support:support-annotations:28.0.0-rc02'
+    implementation 'com.android.support:support-annotations:28.0.0'
 
     api "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
     compileOnly(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
