@@ -172,7 +172,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         })
     }
 
-    fun tokenize(v: View) {
+    fun tokenize(@Suppress("UNUSED_PARAMETER") v: View) {
         SamsungPay.createPaymentManager(braintreeFragment!!, BraintreeResponseListener {
             paymentManager = it
 
@@ -200,15 +200,15 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
                             displayAddresses(billingAddress, shippingAddress)
                         }
 
-                        override fun onCardInfoUpdated(cardInfo: CardInfo, custosheet: CustomSheet) {
-                            val amountBoxControl = custosheet.getSheetControl("amountID") as AmountBoxControl
+                        override fun onCardInfoUpdated(cardInfo: CardInfo, customSheet: CustomSheet) {
+                            val amountBoxControl = customSheet.getSheetControl("amountID") as AmountBoxControl
                             amountBoxControl.updateValue("itemId", 1.0)
                             amountBoxControl.updateValue("taxId", 1.0)
                             amountBoxControl.updateValue("shippingId", 1.0)
                             amountBoxControl.updateValue("interestId", 1.0)
                             amountBoxControl.updateValue("fuelId", 1.0)
 
-                            custosheet.updateControl(amountBoxControl)
+                            customSheet.updateControl(amountBoxControl)
                         }
                     })
             })
@@ -217,13 +217,9 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
 
     override fun onError(error: Exception) {
         if (error is SamsungPayException) {
-            val (code) = error
-
-            when (code) {
-                // Handle SamsungPayException
-            }
-
             showDialog("Samsung Pay failed with error code " + error.code)
+        } else {
+            throw RuntimeException(error)
         }
     }
 
@@ -295,7 +291,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
                 "         - Product Id: " + binData.productId
     }
 
-    fun transact(v: View) {
+    fun transact(@Suppress("UNUSED_PARAMETER") v: View) {
         showSpinner(true)
 
         val callback = object : Callback<Transaction> {
@@ -334,7 +330,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
     private fun showDialog(message: String) {
         AlertDialog.Builder(this)
             .setMessage(message)
-            .setPositiveButton(android.R.string.ok) { dialog, which -> dialog.dismiss() }
+            .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
             .show()
     }
 

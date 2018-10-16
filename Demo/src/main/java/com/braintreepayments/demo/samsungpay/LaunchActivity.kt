@@ -11,14 +11,14 @@ class LaunchActivity : AppCompatActivity() {
         setContentView(R.layout.activity_launch)
     }
 
-    fun launchJavaDemo(v: View) {
+    fun launchJavaDemo(@Suppress("UNUSED_PARAMETER") v: View) {
         val intent = Intent(this, MainActivity::class.java)
             .putExtras(Bundle())
 
         startActivity(intent)
     }
 
-    fun launchKotlinDemo(v: View) {
+    fun launchKotlinDemo(@Suppress("UNUSED_PARAMETER") v: View) {
         val intent = Intent(this, MainKotlinActivity::class.java)
             .putExtras(Bundle())
 
