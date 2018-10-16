@@ -1,6 +1,7 @@
 package com.braintreepayments.api;
 
 import android.app.Application;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import org.junit.Before;
@@ -14,23 +15,28 @@ import static junit.framework.Assert.assertEquals;
 @RunWith(RobolectricTestRunner.class)
 public class AndroidManifestUnitTest {
     private static final float EXPECTED_SPAY_SDK_API_LEVEL = 2.5f;
-    private Bundle metaData;
+    private ApplicationInfo mApplicationInfo;
 
     @Before
     public void setup() throws PackageManager.NameNotFoundException {
         Application application = RuntimeEnvironment.application;
-        metaData = application.getPackageManager().getApplicationInfo(
+        mApplicationInfo = application.getPackageManager().getApplicationInfo(
                 application.getPackageName(),
-                PackageManager.GET_META_DATA).metaData;
+                PackageManager.GET_META_DATA);
     }
 
     @Test
     public void hasDebugModeSetToN() {
-        assertEquals("N", metaData.getString("debug_mode"));
+        assertEquals("N", mApplicationInfo.metaData.getString("debug_mode"));
     }
 
     @Test
     public void hasSpaySdkApiLevelSet() {
-        assertEquals(EXPECTED_SPAY_SDK_API_LEVEL, metaData.getFloat("spay_sdk_api_level"));
+        assertEquals(EXPECTED_SPAY_SDK_API_LEVEL, mApplicationInfo.metaData.getFloat("spay_sdk_api_level"));
+    }
+
+    @Test
+    public void isExpectedPackage() {
+        assertEquals("com.braintreepayments.api.samsungpay", mApplicationInfo.packageName);
     }
 }
