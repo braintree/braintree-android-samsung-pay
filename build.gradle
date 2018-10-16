@@ -5,9 +5,9 @@ allprojects {
         minSdkVersion = 16
         compileSdkVersion = 28
         targetSdkVersion = 28
-        versionCode = 2
+        versionCode = 3
         kotlinVersion = kotlin_version
-        versionName = '0.2.0'
+        versionName = '0.2.1-SNAPSHOT'
         buildToolsVersion = '28.0.2'
     }
 }
