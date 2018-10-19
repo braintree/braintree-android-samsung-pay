@@ -31,11 +31,13 @@ public class SamsungPayNonce() : PaymentMethodNonce() {
     // Tokenizer's JSON schema
     private fun from(json: JSONObject?) {
         val braintreeDataJson = JSONObject(JSONObject(json?.getString("data")).getString("data"))
-        val singleUseToken = braintreeDataJson.getJSONObject("tokenizeSamsungPayCard").getJSONObject("singleUseToken")
-        val details = singleUseToken.getJSONObject("details")
-        mNonce = singleUseToken.getString("id")
+        val paymentMethod = braintreeDataJson.getJSONObject("tokenizeSamsungPayCard")
+            .getJSONObject("paymentMethod")
+        val details = paymentMethod.getJSONObject("details")
+
+        mNonce = paymentMethod.getString("id")
         cardType = details.getString("brand")
-        sourceCardLast4 = details.getString("sourceCardLast4")
+        sourceCardLast4 = details.getString("last4")
         mDescription = "ending in $sourceCardLast4"
 
         // This is a hack to get around the mismatch between the GraphQL API version used in
