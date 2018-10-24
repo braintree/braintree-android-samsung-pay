@@ -49,7 +49,6 @@ end
 task :release_braintree_samsung_pay do
   sh "./gradlew clean :SamsungPay:uploadArchives"
   sh "./gradlew closeAndReleaseRepository"
-  sleep 600
   puts "Braintree Samsung Pay module have been released"
 end
 

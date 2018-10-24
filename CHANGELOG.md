@@ -1,5 +1,9 @@
 # Braintree Android Samsung Pay SDK Release Notes
 
+## 0.3.0
+
+* Use Maven to access Samsung Pay
+
 ## 0.2.0
 
 * Update Android SDK to 28
