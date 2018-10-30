@@ -1,5 +1,9 @@
 # Braintree Android Samsung Pay SDK Release Notes
 
+## 1.0.0
+
+* Revert Maven access for Samsung Pay
+
 ## 0.3.0
 
 * Use Maven to access Samsung Pay
