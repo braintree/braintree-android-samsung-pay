@@ -18,7 +18,7 @@ To use the latest build from the `master` branch use:
 
 ```groovy
 dependencies {
-  implementation 'com.braintreepayments.api:samsung-pay:0.3.1-SNAPSHOT'
+  implementation 'com.braintreepayments.api:samsung-pay:1.0.1-SNAPSHOT'
 }
 ```
 
