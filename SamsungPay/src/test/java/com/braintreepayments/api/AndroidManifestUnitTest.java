@@ -14,7 +14,7 @@ import static junit.framework.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
 public class AndroidManifestUnitTest {
-    private static final float EXPECTED_SPAY_SDK_API_LEVEL = 2.5f;
+    private static final float EXPECTED_SPAY_SDK_API_LEVEL = 2.4f;
     private ApplicationInfo mApplicationInfo;
 
     @Before
