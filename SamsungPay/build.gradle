@@ -53,6 +53,7 @@ dependencies {
     testImplementation 'org.powermock:powermock-api-mockito2:1.7.4'
     testImplementation 'org.powermock:powermock-classloading-xstream:1.7.4'
     testImplementation 'org.robolectric:robolectric:4.0-alpha-3'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
 }
 
 /* maven deploy + signing */
