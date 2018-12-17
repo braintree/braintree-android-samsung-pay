@@ -8,7 +8,7 @@ allprojects {
         versionCode = 5
         kotlinVersion = kotlin_version
         versionName = '1.0.1-SNAPSHOT'
-        buildToolsVersion = '28.0.2'
+        buildToolsVersion = '28.0.3'
     }
 }
 
@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.2.1'
         classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.11.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}"
     }
