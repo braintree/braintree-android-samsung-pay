@@ -32,7 +32,7 @@ dependencies {
     implementation 'com.braintreepayments.api:braintree:2.16.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.ext.kotlinVersion}"
 
-    implementation(group: 'com.samsung.android', name: 'samsungpay-production', ext: 'jar')
+    implementation 'com.samsung.android.spay:sdk:2.5.01'
 
     implementation('com.squareup.retrofit:retrofit:1.9.0') {
         exclude module: 'com.google.gson'
