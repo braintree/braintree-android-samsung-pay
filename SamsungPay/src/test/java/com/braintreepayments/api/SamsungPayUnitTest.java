@@ -67,6 +67,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
         PaymentManager.class
 })
 public class SamsungPayUnitTest {
+    private static final String BRAINTREE_TOKENIZATION_API_VERSION = "2018-10-01";
 
     @Rule
     public PowerMockRule mPowerMockRule = new PowerMockRule();
@@ -448,6 +449,7 @@ public class SamsungPayUnitTest {
                 .toString();
 
         assertEquals(clientSdkMetadata, additionalData.getString("clientSdkMetadata"));
+        assertEquals(BRAINTREE_TOKENIZATION_API_VERSION, additionalData.getString("braintreeTokenizationApiVersion"));
     }
 
     @Test

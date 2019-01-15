@@ -37,6 +37,7 @@ class SamsungPayAvailability() {
 class SamsungPay {
     companion object {
         const val SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
+        const val BRAINTREE_TOKENIZATION_API_VERSION = "2018-10-01"
 
         /**
          * Forwards the user to the Samsung Pay update page.
@@ -284,6 +285,7 @@ class SamsungPay {
                 )
 
                 val additionalData = JSONObject()
+                additionalData.put("braintreeTokenizationApiVersion", BRAINTREE_TOKENIZATION_API_VERSION)
                 additionalData.put(
                     "clientSdkMetadata", MetadataBuilder()
                         .integration(fragment.integrationType)
