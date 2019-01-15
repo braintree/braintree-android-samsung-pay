@@ -18,7 +18,6 @@ import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import org.json.JSONObject
 import java.util.*
 
-
 class SamsungPayAvailability() {
     var status: Int = SPAY_NOT_SUPPORTED
     var reason: Int = 0
@@ -284,15 +283,16 @@ class SamsungPay {
                     configuration.samsungPay.environment.toUpperCase() == "SANDBOX"
                 )
 
-                val clientSdkMetadataJson = JSONObject()
-                clientSdkMetadataJson.put(
+                val additionalData = JSONObject()
+                additionalData.put(
                     "clientSdkMetadata", MetadataBuilder()
                         .integration(fragment.integrationType)
                         .sessionId(fragment.sessionId)
                         .version()
                         .build()
                 )
-                bundle.putString("additionalData", clientSdkMetadataJson.toString())
+
+                bundle.putString("additionalData", additionalData.toString())
 
                 listener.onResponse(BraintreePartnerInfo(configuration.samsungPay, bundle))
             }

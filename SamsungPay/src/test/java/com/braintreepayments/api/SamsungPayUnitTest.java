@@ -10,7 +10,9 @@ import com.braintreepayments.api.interfaces.BraintreeResponseListener;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.braintreepayments.api.internal.ClassHelper;
 import com.braintreepayments.api.models.BraintreeRequestCodes;
+import com.braintreepayments.api.models.MetadataBuilder;
 import com.braintreepayments.api.models.SamsungPayNonce;
+import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
@@ -19,6 +21,8 @@ import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountBoxControl;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountConstants;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet;
+
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -416,6 +420,34 @@ public class SamsungPayUnitTest {
         SamsungPay.createPaymentInfo(mBraintreeFragment, this.<CustomSheetPaymentInfo.Builder>emptyResponse());
 
         verify(mBraintreeFragment).sendAnalyticsEvent("samsung-pay.create-payment-info.success");
+    }
+
+    @Test
+    public void createPaymentManager_setsBraintreeDataForTokenization() throws Exception {
+        mockStatic(PaymentManager.class);
+        PaymentManager paymentManager = mock(PaymentManager.class);
+        whenNew(PaymentManager.class).withAnyArguments().thenReturn(paymentManager);
+
+        SamsungPay.createPaymentManager(mBraintreeFragment, this.<PaymentManager>emptyResponse());
+
+        ArgumentCaptor<PartnerInfo> argumentCaptor = ArgumentCaptor.forClass(PartnerInfo.class);
+        verifyNew(PaymentManager.class).withArguments(any(), argumentCaptor.capture());
+
+        Bundle partnerData = argumentCaptor.getValue().getData();
+
+        assertEquals(SpaySdk.ServiceType.INAPP_PAYMENT.toString(), partnerData.getString(SpaySdk.PARTNER_SERVICE_TYPE));
+        assertTrue(partnerData.getBoolean(PaymentManager.EXTRA_KEY_TEST_MODE));
+
+        JSONObject additionalData = new JSONObject(partnerData.getString("additionalData"));
+
+        String clientSdkMetadata = new MetadataBuilder()
+                .integration(mBraintreeFragment.getIntegrationType())
+                .sessionId(mBraintreeFragment.getSessionId())
+                .version()
+                .build()
+                .toString();
+
+        assertEquals(clientSdkMetadata, additionalData.getString("clientSdkMetadata"));
     }
 
     @Test
