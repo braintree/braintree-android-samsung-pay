@@ -18,7 +18,6 @@ import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
 import org.json.JSONObject
 import java.util.*
 
-
 class SamsungPayAvailability() {
     var status: Int = SPAY_NOT_SUPPORTED
     var reason: Int = 0
@@ -38,6 +37,7 @@ class SamsungPayAvailability() {
 class SamsungPay {
     companion object {
         const val SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
+        const val BRAINTREE_TOKENIZATION_API_VERSION = "2018-10-01"
 
         /**
          * Forwards the user to the Samsung Pay update page.
@@ -284,15 +284,17 @@ class SamsungPay {
                     configuration.samsungPay.environment.toUpperCase() == "SANDBOX"
                 )
 
-                val clientSdkMetadataJson = JSONObject()
-                clientSdkMetadataJson.put(
+                val additionalData = JSONObject()
+                additionalData.put("braintreeTokenizationApiVersion", BRAINTREE_TOKENIZATION_API_VERSION)
+                additionalData.put(
                     "clientSdkMetadata", MetadataBuilder()
                         .integration(fragment.integrationType)
                         .sessionId(fragment.sessionId)
                         .version()
                         .build()
                 )
-                bundle.putString("additionalData", clientSdkMetadataJson.toString())
+
+                bundle.putString("additionalData", additionalData.toString())
 
                 listener.onResponse(BraintreePartnerInfo(configuration.samsungPay, bundle))
             }
