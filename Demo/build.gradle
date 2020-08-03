@@ -31,26 +31,27 @@ android {
 }
 
 dependencies {
-    implementation project(':SamsungPay')
-
-    implementation 'com.braintreepayments.api:braintree:3.0.0-SNAPSHOT'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.kotlinVersion}"
-
-    implementation 'com.samsung.android.spay:sdk:2.5.01'
-
-    implementation('com.squareup.retrofit:retrofit:1.9.0') {
-        exclude module: 'com.google.gson'
-    }
-    implementation 'com.google.code.gson:gson:2.8.2'
-
     implementation 'androidx.annotation:annotation:1.0.1'
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
 
+    implementation 'com.braintreepayments.api:braintree:3.0.0-SNAPSHOT'
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.samsung.android.spay:sdk:2.5.01'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.kotlinVersion}"
+
+    implementation('com.squareup.retrofit:retrofit:1.9.0') {
+        exclude module: 'com.google.gson'
+    }
+
+    implementation project(':SamsungPay')
+
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.1'
+
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    androidTestImplementation 'androidx.test:runner:1.1.1'
 }
+
 repositories {
     mavenCentral()
 }
