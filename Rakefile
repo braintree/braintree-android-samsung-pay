@@ -122,7 +122,7 @@ end
 def get_current_version
   current_version = nil
   File.foreach("build.gradle") do |line|
-    if match = line.match(/versionName = '(\d+\.\d+\.\d+(-SNAPSHOT)?)'/)
+    if match = line.match(/version '(\d+\.\d+\.\d+(-SNAPSHOT)?)'/)
       current_version = match.captures
     end
   end
@@ -145,7 +145,7 @@ end
 def update_version(version)
   IO.write("build.gradle",
     File.open("build.gradle") do |file|
-      file.read.gsub(/versionName = '\d+\.\d+\.\d+(-SNAPSHOT)?'/, "versionName = '#{version}'")
+      file.read.gsub(/^version = '\d+\.\d+\.\d+(-SNAPSHOT)?'/, "versionName '#{version}'")
     end
   )
 end
