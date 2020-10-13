@@ -44,7 +44,7 @@ dependencies {
 
     implementation 'androidx.annotation:annotation:1.0.1'
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
-    implementation 'com.braintreepayments.api:braintree:3.0.0'
+    implementation 'com.braintreepayments.api:braintree:3.14.1'
 
     testImplementation 'androidx.test:rules:1.1.1'
     testImplementation 'androidx.test:runner:1.1.1'
