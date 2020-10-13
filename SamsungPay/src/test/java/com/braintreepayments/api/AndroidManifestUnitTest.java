@@ -37,6 +37,6 @@ public class AndroidManifestUnitTest {
 
     @Test
     public void isExpectedPackage() {
-        assertEquals("com.braintreepayments.api.samsungpay", mApplicationInfo.packageName);
+        assertEquals("com.braintreepayments.api.samsungpay.test", mApplicationInfo.packageName);
     }
 }
