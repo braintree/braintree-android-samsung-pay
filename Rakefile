@@ -15,18 +15,6 @@ task :unit_tests => :lint do
   sh "./gradlew --continue test"
 end
 
-desc "Publish current version as a SNAPSHOT"
-task :publish_snapshot => :unit_tests do
-  abort("Version must contain '-SNAPSHOT'!") unless get_current_version.end_with?('-SNAPSHOT')
-
-  puts "Ensure all tests are passing (`rake`)."
-  $stdin.gets
-
-  prompt_for_sonatype_username_and_password
-
-  sh "./gradlew clean :SamsungPay:uploadArchives"
-end
-
 desc "Interactive release to publish new version"
 task :release => :unit_tests do
   puts "Ensure all tests are passing (`rake`)."
@@ -47,7 +35,7 @@ task :release => :unit_tests do
 end
 
 task :release_braintree_samsung_pay do
-  sh "./gradlew clean :SamsungPay:uploadArchives"
+  sh "./gradlew clean :SamsungPay:publishToSonatype"
   sh "./gradlew closeAndReleaseRepository"
   puts "Braintree Samsung Pay module have been released"
 end
@@ -106,7 +94,6 @@ def post_release(version)
   version_values = version.split('.')
   version_values[2] = version_values[2].to_i + 1
   update_version("#{version_values.join('.')}-SNAPSHOT")
-  update_readme_snapshot_version(version_values.join('.'))
   increment_version_code
   sh "git commit -am 'Prepare for development'"
 
@@ -158,10 +145,3 @@ def update_readme_version(version)
   )
 end
 
-def update_readme_snapshot_version(snapshot_version)
-  IO.write("README.md",
-    File.open("README.md") do |file|
-      file.read.gsub(/:samsung-pay:\d+\.\d+\.\d+-SNAPSHOT'/, ":samsung-pay:#{snapshot_version}-SNAPSHOT'")
-    end
-  )
-end
