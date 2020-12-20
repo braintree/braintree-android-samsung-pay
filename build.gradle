@@ -3,8 +3,8 @@ apply plugin: 'io.codearte.nexus-staging'
 allprojects {
     ext {
         minSdkVersion = 21
-        compileSdkVersion = 28
-        targetSdkVersion = 28
+        compileSdkVersion = 'android-Q'
+        targetSdkVersion = 'Q'
         versionCode = 6
         kotlinVersion = kotlin_version
         versionName = '2.0.1-SNAPSHOT'
@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.0'
+        classpath 'com.android.tools.build:gradle:3.4.0'
         classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.11.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}"
     }
