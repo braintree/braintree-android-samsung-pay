@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
-import com.braintreepayments.api.models.SamsungPayNonce
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
@@ -31,10 +30,13 @@ class SamsungPayAvailability() {
         this.reason = reason
     }
 }
-const val SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
-const val BRAINTREE_TOKENIZATION_API_VERSION = "2018-10-01"
 
 class SamsungPay(private var braintreeClient: BraintreeClient) {
+
+    companion object {
+        const val SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
+        const val BRAINTREE_TOKENIZATION_API_VERSION = "2018-10-01"
+    }
 
     /**
      * Forwards the user to the Samsung Pay update page.
@@ -240,13 +242,15 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
     fun requestPayment(
             paymentManager: PaymentManager,
             customSheetPaymentInfo: CustomSheetPaymentInfo,
-            listener: SamsungPayCustomTransactionUpdateListener
+            listener: SamsungPayCustomTransactionUpdateListener,
+            callback: SamsungPayTransactionCallback
     ) {
         paymentManager.startInAppPayWithCustomSheet(
                 customSheetPaymentInfo,
-                SamsungPayCustomTransactionListenerWrapper(paymentManager, listener, braintreeClient, object : SamsungPayCustomTransactionCallback {
+                SamsungPayCustomTransactionListenerWrapper(paymentManager, listener, braintreeClient, object : SamsungPayTransactionCallback {
                     override fun onResult(samsungPayNonce: SamsungPayNonce?, error: Exception?) {
                         // TODO: handle
+                        callback.onResult(samsungPayNonce, error)
                     }
                 })
         )

@@ -1,8 +1,7 @@
-package com.braintreepayments.api.models
+package com.braintreepayments.api
 
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import org.json.JSONObject
 
 /**

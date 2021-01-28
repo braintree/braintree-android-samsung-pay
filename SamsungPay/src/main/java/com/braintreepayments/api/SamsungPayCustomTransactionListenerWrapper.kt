@@ -3,7 +3,6 @@ package com.braintreepayments.api
 import android.os.Bundle
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
-import com.braintreepayments.api.models.SamsungPayNonce
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
@@ -14,7 +13,7 @@ internal class SamsungPayCustomTransactionListenerWrapper(
         val paymentManager: PaymentManager,
         val merchantCallback: SamsungPayCustomTransactionUpdateListener,
         val braintreeClient: BraintreeClient,
-        val callback: SamsungPayCustomTransactionCallback
+        val callback: SamsungPayTransactionCallback
 ) : PaymentManager.CustomSheetTransactionInfoListener {
 
     override fun onSuccess(response: CustomSheetPaymentInfo?, paymentCredential: String?, extraPaymentData: Bundle?) {

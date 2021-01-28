@@ -1,6 +1,7 @@
 package com.braintreepayments.api.test;
 
-import com.braintreepayments.api.internal.StreamHelper;
+
+import com.braintreepayments.api.StreamHelper;
 
 import java.io.FileInputStream;
 import java.io.IOException;

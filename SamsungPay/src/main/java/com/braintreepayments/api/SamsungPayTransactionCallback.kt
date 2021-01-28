@@ -1,7 +1,5 @@
 package com.braintreepayments.api
 
-import com.braintreepayments.api.models.SamsungPayNonce
-
-interface SamsungPayCustomTransactionCallback {
+interface SamsungPayTransactionCallback {
     fun onResult(samsungPayNonce: SamsungPayNonce?, error: Exception?)
 }

@@ -1,6 +1,7 @@
 package com.braintreepayments.api.test;
 
-import com.braintreepayments.api.internal.GraphQLConstants;
+import com.braintreepayments.api.GraphQLConstants;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

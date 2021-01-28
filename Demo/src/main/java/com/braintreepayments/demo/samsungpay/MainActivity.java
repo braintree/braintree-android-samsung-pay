@@ -22,7 +22,7 @@ import com.braintreepayments.api.interfaces.*;
 import com.braintreepayments.api.models.BinData;
 import com.braintreepayments.api.models.BraintreeRequestCodes;
 import com.braintreepayments.api.models.PaymentMethodNonce;
-import com.braintreepayments.api.models.SamsungPayNonce;
+import com.braintreepayments.api.SamsungPayNonce;
 import com.braintreepayments.demo.samsungpay.internal.ApiClient;
 import com.braintreepayments.demo.samsungpay.models.Transaction;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                                 customSheet.updateControl(amountBoxControl);
                                 mPaymentManager.updateSheet(customSheet);
                             }
-                        });
+                        }, );
                     }
                 });
             }
