@@ -13,15 +13,21 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import com.braintreepayments.api.BraintreeFragment;
+
+import com.braintreepayments.api.Authorization;
+import com.braintreepayments.api.BinData;
+import com.braintreepayments.api.BraintreeClient;
+import com.braintreepayments.api.BraintreeRequestCodes;
+import com.braintreepayments.api.InvalidArgumentException;
+import com.braintreepayments.api.PaymentMethodNonce;
 import com.braintreepayments.api.SamsungPayClient;
 import com.braintreepayments.api.SamsungPayAvailability;
-import com.braintreepayments.api.exceptions.InvalidArgumentException;
+import com.braintreepayments.api.SamsungPayCreatePaymentInfoCallback;
+import com.braintreepayments.api.SamsungPayCreatePaymentManagerCallback;
+import com.braintreepayments.api.SamsungPayIsReadyToPayCallback;
+import com.braintreepayments.api.SamsungPayTransactionCallback;
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.*;
-import com.braintreepayments.api.models.BinData;
-import com.braintreepayments.api.models.BraintreeRequestCodes;
-import com.braintreepayments.api.models.PaymentMethodNonce;
 import com.braintreepayments.api.SamsungPayNonce;
 import com.braintreepayments.demo.samsungpay.internal.ApiClient;
 import com.braintreepayments.demo.samsungpay.models.Transaction;
@@ -30,6 +36,10 @@ import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo;
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
@@ -40,8 +50,7 @@ import java.util.Arrays;
 
 import static com.samsung.android.sdk.samsungpay.v2.SpaySdk.*;
 
-public class MainActivity extends AppCompatActivity implements BraintreeErrorListener, BraintreeCancelListener,
-        PaymentMethodNonceCreatedListener {
+public class MainActivity extends AppCompatActivity {
     private static final String EXTRA_AUTHORIZATION = "com.braintreepayments.demo.samsungpay.EXTRA_AUTHORIZATION";
     private static final String EXTRA_ENDPOINT = "com.braintreepayments.demo.samsungpay.EXTRA_ENDPOINT";
 
@@ -54,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private RadioGroup mEnvironmentGroup;
     private Button mTokenizeButton;
     private Button mTransactButton;
-    private BraintreeFragment mBraintreeFragment;
     private TextView mBillingAddressDetails;
     private TextView mShippingAddressDetails;
     private TextView mNonceDetails;
@@ -62,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     private PaymentMethodNonce mPaymentMethodNonce;
     private String mAuthorization;
     private String mEndpoint;
+
+    private SamsungPayClient samsungPayClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,26 +115,28 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         mTokenizeButton.setEnabled(false);
         mTransactButton.setEnabled(false);
 
+
         try {
-            mBraintreeFragment = BraintreeFragment.newInstance(this, mAuthorization);
+            BraintreeClient braintreeClient = new BraintreeClient(Authorization.fromString(mAuthorization), this, "sample.return.scheme");
+            samsungPayClient = new SamsungPayClient(braintreeClient);
         } catch (InvalidArgumentException ignored) {
         }
 
-        SamsungPayClient.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
+        samsungPayClient.isReadyToPay(this, new SamsungPayIsReadyToPayCallback() {
             @Override
-            public void onResponse(SamsungPayAvailability availability) {
-                switch (availability.getStatus()) {
+            public void onResult(@Nullable SamsungPayAvailability samsungPayAvailability, @Nullable Exception error) {
+                switch (samsungPayAvailability.getStatus()) {
                     case SPAY_READY:
                         mTokenizeButton.setEnabled(true);
                         break;
                     case SPAY_NOT_READY:
-                        Integer reason = availability.getReason();
+                        Integer reason = samsungPayAvailability.getReason();
                         if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
                             showDialog("Need to update Samsung Pay app...");
-                            SamsungPayClient.goToUpdatePage(mBraintreeFragment);
+                            samsungPayClient.goToUpdatePage(MainActivity.this);
                         } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
                             showDialog("Samsung Pay setup not completed...");
-                            SamsungPayClient.activateSamsungPay(mBraintreeFragment);
+                            samsungPayClient.activateSamsungPay(MainActivity.this);
                         } else if (reason == SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
                             showDialog("No supported cards in wallet");
                         }
@@ -139,24 +151,23 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     }
 
     public void tokenize(View v) {
-        SamsungPayClient.createPaymentManager(, new BraintreeResponseListener<PaymentManager>() {
+        samsungPayClient.createPaymentManager(this, new SamsungPayCreatePaymentManagerCallback() {
             @Override
-            public void onResponse(PaymentManager paymentManager) {
+            public void onResult(@Nullable PaymentManager paymentManager, @Nullable Exception error) {
                 mPaymentManager = paymentManager;
 
-                SamsungPayClient.createPaymentInfo(new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
+                samsungPayClient.createPaymentInfo(new SamsungPayCreatePaymentInfoCallback() {
                     @Override
-                    public void onResponse(CustomSheetPaymentInfo.Builder builder) {
+                    public void onResult(@NotNull CustomSheetPaymentInfo.Builder builder, @Nullable Exception error) {
                         CustomSheetPaymentInfo paymentInfo = builder
                                 .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
                                 .setCustomSheet(getCustomSheet())
                                 .setOrderNumber("order-number")
                                 .build();
 
-
-                        SamsungPayClient.requestPayment(mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
+                        samsungPayClient.requestPayment(mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
                             @Override
-                            public void onSuccess(CustomSheetPaymentInfo response, Bundle extraPaymentData) {
+                            public void onSuccess(@NotNull CustomSheetPaymentInfo response, @NotNull Bundle extraPaymentData) {
                                 CustomSheet customSheet = response.getCustomSheet();
                                 AddressControl billingAddressControl = (AddressControl) customSheet.getSheetControl("billingAddressId");
                                 CustomSheetPaymentInfo.Address billingAddress = billingAddressControl.getAddress();
@@ -167,14 +178,25 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                             }
 
                             @Override
-                            public void onCardInfoUpdated(@NonNull CardInfo cardInfo, @NonNull CustomSheet customSheet) {
+                            public void onCardInfoUpdated(@NotNull CardInfo cardInfo, @NotNull CustomSheet customSheet) {
                                 AmountBoxControl amountBoxControl = (AmountBoxControl) customSheet.getSheetControl("amountID");
                                 amountBoxControl.setAmountTotal(1.0, AmountConstants.FORMAT_TOTAL_PRICE_ONLY);
 
                                 customSheet.updateControl(amountBoxControl);
                                 mPaymentManager.updateSheet(customSheet);
                             }
-                        }, );
+                        }, new SamsungPayTransactionCallback() {
+                            @Override
+                            public void onResult(@Nullable SamsungPayNonce samsungPayNonce, @Nullable Exception error) {
+                                if (samsungPayNonce != null) {
+                                    handlePaymentMethodNonceCreated(samsungPayNonce);
+                                }
+                                if (error != null) {
+                                    handleError(error);
+                                }
+                            }
+                        });
+
                     }
                 });
             }
@@ -215,8 +237,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         return sheet;
     }
 
-    @Override
-    public void onError(Exception error) {
+    private void handleError(Exception error) {
         if (error instanceof SamsungPayException) {
             SamsungPayException samsungPayException = (SamsungPayException) error;
 
@@ -231,15 +252,14 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         }
     }
 
-    @Override
-    public void onPaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
+    private void handlePaymentMethodNonceCreated(PaymentMethodNonce paymentMethodNonce) {
         mPaymentMethodNonce = paymentMethodNonce;
         mTransactButton.setEnabled(true);
 
         displayPaymentMethodNonce(paymentMethodNonce);
     }
 
-    public void onCancel(int requestCode) {
+    private void handleCancel(int requestCode) {
         if (requestCode == BraintreeRequestCodes.SAMSUNG_PAY) {
             Log.d("SamsungPay", "User canceled payment.");
         }

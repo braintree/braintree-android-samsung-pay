@@ -456,9 +456,11 @@ public class SamsungPayClientUnitTest {
 
     @Test
     public void createPaymentManager_setsBraintreeDataForTokenization() throws Exception {
-        mockStatic(PaymentManager.class);
-        PaymentManager paymentManager = mock(PaymentManager.class);
-        whenNew(PaymentManager.class).withAnyArguments().thenReturn(paymentManager);
+//        mockStatic(PaymentManager.class);
+//        PaymentManager paymentManager = mock(PaymentManager.class);
+//        whenNew(PaymentManager.class).withAnyArguments().thenReturn(paymentManager);
+        PaymentManager mockedManager = mock(PaymentManager.class);
+        stubPaymentManager(mockedManager);
 
         SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.createPaymentManager(context, samsungPayCreatePaymentManagerCallback);
@@ -616,7 +618,7 @@ public class SamsungPayClientUnitTest {
         stubPaymentManager(mockedPaymentManager);
 
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
-        ArgumentCaptor<Integer> requestCodeCaptor = ArgumentCaptor.forClass(Integer.class);
+//        ArgumentCaptor<Integer> requestCodeCaptor = ArgumentCaptor.forClass(Integer.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
         SamsungPayClient sut = new SamsungPayClient(braintreeClient);
@@ -625,7 +627,8 @@ public class SamsungPayClientUnitTest {
                 listenerCaptor.capture());
 
         listenerCaptor.getValue().onFailure(SpaySdk.ERROR_USER_CANCELED, null);
-//        verify(samsungPayTransactionCallback).onResult(requestCodeCaptor.capture());
+        verify(samsungPayTransactionCallback).onResult(null, null);
+//        verify(samsungPayTransactionCallback).onResult(requestCodeCaptor.capture(), null);
 //
 //        int capturedCode = requestCodeCaptor.getValue();
 //

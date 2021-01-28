@@ -188,11 +188,11 @@ class SamsungPayClient(private var braintreeClient: BraintreeClient) {
      * custom sheet, address requirements, and etc.
      *
      * @param [fragment] [BraintreeFragment]
-     * @param [listener] Returns a [CustomSheetPaymentInfo.Builder] that can be modified
+     * @param [callback] Returns a [CustomSheetPaymentInfo.Builder] that can be modified
      * for the merchant's requirements.
      */
     fun createPaymentInfo(
-            listener: BraintreeResponseListener<CustomSheetPaymentInfo.Builder>
+            callback: SamsungPayCreatePaymentInfoCallback
     ) {
         getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
             override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
@@ -201,9 +201,10 @@ class SamsungPayClient(private var braintreeClient: BraintreeClient) {
                             .setMerchantName(partnerInfo.configuration.merchantDisplayName)
                             .setMerchantId(partnerInfo.configuration.samsungAuthorization)
                             .setAllowedCardBrands(getAcceptedCardBrands(partnerInfo.configuration.supportedCardBrands))
-                    listener.onResponse(paymentInfo)
+                    callback.onResult(paymentInfo, null)
                     braintreeClient.sendAnalyticsEvent("samsung-pay.create-payment-info.success")
                 }
+                // TODO: handle error
             }
         })
     }
