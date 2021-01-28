@@ -139,12 +139,12 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     }
 
     public void tokenize(View v) {
-        SamsungPay.createPaymentManager(mBraintreeFragment, new BraintreeResponseListener<PaymentManager>() {
+        SamsungPay.createPaymentManager(, new BraintreeResponseListener<PaymentManager>() {
             @Override
             public void onResponse(PaymentManager paymentManager) {
                 mPaymentManager = paymentManager;
 
-                SamsungPay.createPaymentInfo(mBraintreeFragment, new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
+                SamsungPay.createPaymentInfo(new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
                     @Override
                     public void onResponse(CustomSheetPaymentInfo.Builder builder) {
                         CustomSheetPaymentInfo paymentInfo = builder
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                                 .build();
 
 
-                        SamsungPay.requestPayment(mBraintreeFragment, mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
+                        SamsungPay.requestPayment(mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
                             @Override
                             public void onSuccess(CustomSheetPaymentInfo response, Bundle extraPaymentData) {
                                 CustomSheet customSheet = response.getCustomSheet();
