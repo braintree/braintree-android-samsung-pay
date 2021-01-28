@@ -81,6 +81,7 @@ public class SamsungPayUnitTest {
     private SamsungPayTransactionCallback samsungPayTransactionCallback;
     private SamsungPayIsReadyToPayCallback samsungPayIsReadyToPayCallback;
     private SamsungPayCreatePaymentManagerCallback samsungPayCreatePaymentManagerCallback;
+    private SamsungPayCreatePaymentInfoCallback samsungPayCreatePaymentInfoCallback;
 
     @Before
     public void setup() throws Exception {
@@ -92,6 +93,7 @@ public class SamsungPayUnitTest {
         samsungPayTransactionCallback = mock(SamsungPayTransactionCallback.class);
         samsungPayIsReadyToPayCallback = mock(SamsungPayIsReadyToPayCallback.class);
         samsungPayCreatePaymentManagerCallback = mock(SamsungPayCreatePaymentManagerCallback.class);
+        samsungPayCreatePaymentInfoCallback = mock(SamsungPayCreatePaymentInfoCallback.class);
         ApplicationInfo mockApplicationInfo = mock(ApplicationInfo.class);
 
         Bundle mockBundle = mock(Bundle.class);
@@ -426,9 +428,9 @@ public class SamsungPayUnitTest {
         final CountDownLatch latch = new CountDownLatch(1);
 
         SamsungPay sut = new SamsungPay(braintreeClient);
-        sut.createPaymentInfo(new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
+        sut.createPaymentInfo(new SamsungPayCreatePaymentInfoCallback() {
             @Override
-            public void onResponse(CustomSheetPaymentInfo.Builder builder) {
+            public void onResult(CustomSheetPaymentInfo.Builder builder, Exception error) {
                 CustomSheetPaymentInfo paymentInfo = builder.build();
                 assertEquals("example-samsung-authorization", paymentInfo.getMerchantId());
                 assertEquals("some example merchant", paymentInfo.getMerchantName());
@@ -449,7 +451,7 @@ public class SamsungPayUnitTest {
     @Test
     public void createPaymentInfo_sendsAnalyticEvent() {
         SamsungPay sut = new SamsungPay(braintreeClient);
-        sut.createPaymentInfo(this.<CustomSheetPaymentInfo.Builder>emptyResponse());
+        sut.createPaymentInfo(samsungPayCreatePaymentInfoCallback);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.create-payment-info.success");
     }
