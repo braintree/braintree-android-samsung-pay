@@ -11,15 +11,9 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
-import com.braintreepayments.api.BraintreeFragment
-import com.braintreepayments.api.SamsungPayClient
-import com.braintreepayments.api.exceptions.InvalidArgumentException
+import com.braintreepayments.api.*
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.*
-import com.braintreepayments.api.models.BinData
-import com.braintreepayments.api.models.BraintreeRequestCodes
-import com.braintreepayments.api.models.PaymentMethodNonce
-import com.braintreepayments.api.SamsungPayNonce
 import com.braintreepayments.demo.samsungpay.internal.ApiClient
 import com.braintreepayments.demo.samsungpay.models.Transaction
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk.*
@@ -34,8 +28,7 @@ import retrofit.RetrofitError
 import retrofit.client.Response
 import java.util.*
 
-class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, BraintreeCancelListener,
-    PaymentMethodNonceCreatedListener {
+class MainKotlinActivity : AppCompatActivity() {
 
     companion object {
         private val EXTRA_AUTHORIZATION = "com.braintreepayments.demo.samsungpay.EXTRA_AUTHORIZATION"
@@ -70,11 +63,12 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
     private val shippingAddressDetails: TextView by bind(R.id.shipping_address_details)
     private val nonceDetails: TextView by bind(R.id.nonce_details)
 
-    private var braintreeFragment: BraintreeFragment? = null
     private lateinit var paymentManager: PaymentManager
     private lateinit var paymentMethodNonce: PaymentMethodNonce
     private lateinit var authorization: String
     private lateinit var endpoint: String
+
+    private lateinit var samsungPayClient: SamsungPayClient
 
     private val customSheet: CustomSheet
         get() {
@@ -145,77 +139,88 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         transactButton.isEnabled = false
 
         try {
-            braintreeFragment = BraintreeFragment.newInstance(this, authorization)
+            var braintreeClient = BraintreeClient(Authorization.fromString(authorization), this, "sample.return.scheme")
+            samsungPayClient = SamsungPayClient(braintreeClient)
         } catch (ignored: InvalidArgumentException) {
         }
 
-        SamsungPayClient.isReadyToPay(braintreeFragment!!, BraintreeResponseListener { availability ->
-            when (availability.status) {
-                SPAY_READY -> tokenizeButton.isEnabled = true
-                SPAY_NOT_READY -> {
-                    val reason = availability.reason
-                    if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
-                        showDialog("Need to update Samsung Pay app...")
-                        SamsungPayClient.goToUpdatePage(braintreeFragment!!)
-                    } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
-                        showDialog("Samsung Pay setup not completed...")
-                        SamsungPayClient.activateSamsungPay(braintreeFragment!!)
-                    } else if (reason == SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
-                        showDialog("No supported cards in wallet")
+        samsungPayClient.isReadyToPay(this, object : SamsungPayIsReadyToPayCallback {
+            override fun onResult(samsungPayAvailability: SamsungPayAvailability?, error: Exception?) {
+                when (samsungPayAvailability?.status) {
+                    SPAY_READY -> tokenizeButton.isEnabled = true
+                    SPAY_NOT_READY -> {
+                        val reason = samsungPayAvailability?.reason
+                        if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
+                            showDialog("Need to update Samsung Pay app...")
+                            samsungPayClient.goToUpdatePage(this@MainKotlinActivity)
+                        } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
+                            showDialog("Samsung Pay setup not completed...")
+                            samsungPayClient.activateSamsungPay(this@MainKotlinActivity)
+                        } else if (reason == SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
+                            showDialog("No supported cards in wallet")
+                        }
                     }
-                }
-                SPAY_NOT_SUPPORTED -> {
-                    showDialog("Samsung Pay is not supported")
-                    tokenizeButton.isEnabled = false
+                    SPAY_NOT_SUPPORTED -> {
+                        showDialog("Samsung Pay is not supported")
+                        tokenizeButton.isEnabled = false
+                    }
                 }
             }
         })
     }
 
     fun tokenize(@Suppress("UNUSED_PARAMETER") v: View) {
-        SamsungPayClient.createPaymentManager(braintreeFragment!!, BraintreeResponseListener {
-            paymentManager = it
+        samsungPayClient.createPaymentManager(this, object : SamsungPayCreatePaymentManagerCallback {
+            override fun onResult(paymentManager: PaymentManager?, error: Exception?) {
+                paymentManager?.let { paymentManager ->
+                    samsungPayClient.createPaymentInfo(object : SamsungPayCreatePaymentInfoCallback {
+                        override fun onResult(builder: CustomSheetPaymentInfo.Builder, error: Exception?) {
+                            val paymentInfo = builder
+                                    .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
+                                    .setCustomSheet(customSheet)
+                                    .setOrderNumber("order-number")
+                                    .build()
+                            samsungPayClient.requestPayment(paymentManager, paymentInfo, object : SamsungPayCustomTransactionUpdateListener {
+                                override fun onCardInfoUpdated(cardInfo: CardInfo, customSheet: CustomSheet) {
+                                    val amountBoxControl = customSheet.getSheetControl("amountID") as AmountBoxControl
+                                    amountBoxControl.updateValue("itemId", 1.0)
+                                    amountBoxControl.updateValue("taxId", 1.0)
+                                    amountBoxControl.updateValue("shippingId", 1.0)
+                                    amountBoxControl.updateValue("interestId", 1.0)
+                                    amountBoxControl.updateValue("fuelId", 1.0)
 
-            SamsungPayClient.createPaymentInfo(braintreeFragment!!, BraintreeResponseListener { builder ->
-                val paymentInfo = builder
-                    .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
-                    .setCustomSheet(customSheet)
-                    .setOrderNumber("order-number")
-                    .build()
+                                    customSheet.updateControl(amountBoxControl)
+                                }
 
+                                override fun onSuccess(response: CustomSheetPaymentInfo, extraPaymentData: Bundle) {
+                                    val custosheet = response.customSheet
+                                    val billingAddressControl =
+                                            custosheet.getSheetControl("billingAddressId") as AddressControl
+                                    val billingAddress = billingAddressControl.address
 
-                SamsungPayClient.requestPayment(
-                    braintreeFragment!!,
-                    paymentManager,
-                    paymentInfo,
-                    object : SamsungPayCustomTransactionUpdateListener {
-                        override fun onSuccess(response: CustomSheetPaymentInfo, extraPaymentData: Bundle) {
-                            val custosheet = response.customSheet
-                            val billingAddressControl =
-                                custosheet.getSheetControl("billingAddressId") as AddressControl
-                            val billingAddress = billingAddressControl.address
+                                    val shippingAddress = response.paymentShippingAddress
 
-                            val shippingAddress = response.paymentShippingAddress
+                                    displayAddresses(billingAddress, shippingAddress)
+                                }
 
-                            displayAddresses(billingAddress, shippingAddress)
-                        }
-
-                        override fun onCardInfoUpdated(cardInfo: CardInfo, customSheet: CustomSheet) {
-                            val amountBoxControl = customSheet.getSheetControl("amountID") as AmountBoxControl
-                            amountBoxControl.updateValue("itemId", 1.0)
-                            amountBoxControl.updateValue("taxId", 1.0)
-                            amountBoxControl.updateValue("shippingId", 1.0)
-                            amountBoxControl.updateValue("interestId", 1.0)
-                            amountBoxControl.updateValue("fuelId", 1.0)
-
-                            customSheet.updateControl(amountBoxControl)
+                            }, object: SamsungPayTransactionCallback {
+                                override fun onResult(samsungPayNonce: SamsungPayNonce?, error: Exception?) {
+                                    samsungPayNonce?.let {
+                                        handlePaymentMethodNonceCreated(it)
+                                    }
+                                    error?.let {
+                                        handleError(it)
+                                    }
+                                }
+                            })
                         }
                     })
-            })
+                }
+            }
         })
     }
 
-    override fun onError(error: Exception) {
+    private fun handleError(error: Exception) {
         if (error is SamsungPayException) {
             showDialog("Samsung Pay failed with error code " + error.code)
         } else {
@@ -223,14 +228,14 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         }
     }
 
-    override fun onPaymentMethodNonceCreated(it: PaymentMethodNonce) {
+    private fun handlePaymentMethodNonceCreated(it: PaymentMethodNonce) {
         paymentMethodNonce = it
         transactButton.isEnabled = true
 
         displayPaymentMethodNonce(paymentMethodNonce)
     }
 
-    override fun onCancel(requestCode: Int) {
+    private fun handleCancel(requestCode: Int) {
         if (requestCode == BraintreeRequestCodes.SAMSUNG_PAY) {
             Log.d("SamsungPay", "User canceled payment.")
         }
