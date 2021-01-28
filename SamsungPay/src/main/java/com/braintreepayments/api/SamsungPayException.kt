@@ -1,4 +1,4 @@
-package com.braintreepayments.api.exceptions
+package com.braintreepayments.api
 
 import android.os.Bundle
 

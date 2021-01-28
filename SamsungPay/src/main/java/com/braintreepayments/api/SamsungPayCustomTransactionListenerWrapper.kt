@@ -1,8 +1,6 @@
 package com.braintreepayments.api
 
 import android.os.Bundle
-import com.braintreepayments.api.exceptions.SamsungPayException
-import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo

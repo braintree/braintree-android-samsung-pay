@@ -12,7 +12,7 @@ import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
 import com.braintreepayments.api.*
-import com.braintreepayments.api.exceptions.SamsungPayException
+import com.braintreepayments.api.SamsungPayException
 import com.braintreepayments.api.interfaces.*
 import com.braintreepayments.demo.samsungpay.internal.ApiClient
 import com.braintreepayments.demo.samsungpay.models.Transaction

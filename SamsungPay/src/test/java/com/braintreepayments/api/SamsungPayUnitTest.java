@@ -5,8 +5,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.braintreepayments.api.exceptions.SamsungPayException;
-import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;

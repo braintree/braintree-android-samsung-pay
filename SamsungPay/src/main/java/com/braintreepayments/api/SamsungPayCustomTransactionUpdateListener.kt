@@ -1,4 +1,4 @@
-package com.braintreepayments.api.interfaces
+package com.braintreepayments.api
 
 import android.os.Bundle
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
