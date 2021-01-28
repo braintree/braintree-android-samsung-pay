@@ -12,7 +12,7 @@ import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
 import com.braintreepayments.api.BraintreeFragment
-import com.braintreepayments.api.SamsungPay
+import com.braintreepayments.api.SamsungPayClient
 import com.braintreepayments.api.exceptions.InvalidArgumentException
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.*
@@ -149,18 +149,18 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         } catch (ignored: InvalidArgumentException) {
         }
 
-        SamsungPay.isReadyToPay(braintreeFragment!!, BraintreeResponseListener { availability ->
+        SamsungPayClient.isReadyToPay(braintreeFragment!!, BraintreeResponseListener { availability ->
             when (availability.status) {
                 SPAY_READY -> tokenizeButton.isEnabled = true
                 SPAY_NOT_READY -> {
                     val reason = availability.reason
                     if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
                         showDialog("Need to update Samsung Pay app...")
-                        SamsungPay.goToUpdatePage(braintreeFragment!!)
+                        SamsungPayClient.goToUpdatePage(braintreeFragment!!)
                     } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
                         showDialog("Samsung Pay setup not completed...")
-                        SamsungPay.activateSamsungPay(braintreeFragment!!)
-                    } else if (reason == SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
+                        SamsungPayClient.activateSamsungPay(braintreeFragment!!)
+                    } else if (reason == SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
                         showDialog("No supported cards in wallet")
                     }
                 }
@@ -173,10 +173,10 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
     }
 
     fun tokenize(@Suppress("UNUSED_PARAMETER") v: View) {
-        SamsungPay.createPaymentManager(braintreeFragment!!, BraintreeResponseListener {
+        SamsungPayClient.createPaymentManager(braintreeFragment!!, BraintreeResponseListener {
             paymentManager = it
 
-            SamsungPay.createPaymentInfo(braintreeFragment!!, BraintreeResponseListener { builder ->
+            SamsungPayClient.createPaymentInfo(braintreeFragment!!, BraintreeResponseListener { builder ->
                 val paymentInfo = builder
                     .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
                     .setCustomSheet(customSheet)
@@ -184,7 +184,7 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
                     .build()
 
 
-                SamsungPay.requestPayment(
+                SamsungPayClient.requestPayment(
                     braintreeFragment!!,
                     paymentManager,
                     paymentInfo,

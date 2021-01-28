@@ -7,6 +7,7 @@ import android.os.Bundle;
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
+import com.samsung.android.sdk.samsungpay.v2.SamsungPay;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
@@ -16,7 +17,6 @@ import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountBoxControl;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountConstants;
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,14 +55,14 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(RobolectricTestRunner.class)
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*", "org.json.*"})
+@PowerMockIgnore({"org.powermock.*", "org.mockito.*", "org.robolectric.*", "android.*", "org.json.*"})
 @PrepareForTest({
         ClassHelper.class,
-        SamsungPay.class,
+        SamsungPayClient.class,
         com.samsung.android.sdk.samsungpay.v2.SamsungPay.class,
         PaymentManager.class
 })
-public class SamsungPayUnitTest {
+public class SamsungPayClientUnitTest {
     private static final String BRAINTREE_TOKENIZATION_API_VERSION = "2018-10-01";
 
     @Rule
@@ -73,7 +73,7 @@ public class SamsungPayUnitTest {
     private SamsungPayTransactionCallback samsungPayTransactionCallback;
 
     @Before
-    public void setup() throws PackageManager.NameNotFoundException, JSONException {
+    public void setup() throws Exception {
         braintreeClient = new MockBraintreeClientBuilder()
                 .configuration(Configuration.fromJson(stringFromFixture("configuration/with_samsung_pay.json")))
                 .build();
@@ -102,7 +102,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -120,7 +120,7 @@ public class SamsungPayUnitTest {
         mockStatic(ClassHelper.class);
         when(ClassHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.is-ready-to-pay.samsung-pay-class-unavailable");
@@ -132,7 +132,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -149,7 +149,7 @@ public class SamsungPayUnitTest {
     public void isReadyToPay_whenSpayStatusIsNotSupported_sendsAnalyticEvent() {
         stubSamsungPayStatus(SpaySdk.SPAY_NOT_SUPPORTED);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.is-ready-to-pay.device-not-supported");
@@ -161,7 +161,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -178,7 +178,7 @@ public class SamsungPayUnitTest {
     public void isReadyToPay_whenSpayStatusIsNotReady_sendsAnalyticEvent() {
         stubSamsungPayStatus(SpaySdk.SPAY_NOT_READY);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.is-ready-to-pay.not-ready");
@@ -190,7 +190,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -209,7 +209,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -231,7 +231,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -251,7 +251,7 @@ public class SamsungPayUnitTest {
         cardInfos.add(new CardInfo.Builder().setBrand(SpaySdk.Brand.VISA).build());
         stubPaymentManagerRequestCardInfo(cardInfos);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.is-ready-to-pay.ready");
@@ -264,12 +264,12 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
                 assertEquals(SpaySdk.SPAY_NOT_READY, availability.getStatus());
-                assertEquals(SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
+                assertEquals(SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
 
                 latch.countDown();
             }
@@ -283,7 +283,7 @@ public class SamsungPayUnitTest {
         stubSamsungPayStatus(SpaySdk.SPAY_READY);
         stubPaymentManagerRequestCardInfo(new ArrayList<CardInfo>());
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.request-card-info.no-supported-cards-in-wallet");
@@ -296,12 +296,12 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
                 assertEquals(SpaySdk.SPAY_NOT_READY, availability.getStatus());
-                assertEquals(SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
+                assertEquals(SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET, availability.getReason());
 
                 latch.countDown();
             }
@@ -315,7 +315,7 @@ public class SamsungPayUnitTest {
         stubSamsungPayStatus(SpaySdk.SPAY_READY);
         stubPaymentManagerRequestCardInfo(null);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.request-card-info.no-supported-cards-in-wallet");
@@ -339,7 +339,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -370,7 +370,7 @@ public class SamsungPayUnitTest {
 
         stubSamsungPay(mockedSamsungPay);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.is-ready-to-pay.failed");
@@ -383,7 +383,7 @@ public class SamsungPayUnitTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(SamsungPayAvailability availability, Exception error) {
@@ -403,7 +403,7 @@ public class SamsungPayUnitTest {
         stubSamsungPayStatus(SpaySdk.SPAY_READY);
         stubPaymentManagerRequestCardInfo(-1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.isReadyToPay(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.request-card-info.failed");
@@ -413,7 +413,7 @@ public class SamsungPayUnitTest {
     public void createPaymentInfo_setsMerchantValues() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.createPaymentInfo(new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
             @Override
             public void onResponse(CustomSheetPaymentInfo.Builder builder) {
@@ -436,7 +436,7 @@ public class SamsungPayUnitTest {
 
     @Test
     public void createPaymentInfo_sendsAnalyticEvent() {
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.createPaymentInfo(this.<CustomSheetPaymentInfo.Builder>emptyResponse());
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.create-payment-info.success");
@@ -448,7 +448,7 @@ public class SamsungPayUnitTest {
         PaymentManager paymentManager = mock(PaymentManager.class);
         whenNew(PaymentManager.class).withAnyArguments().thenReturn(paymentManager);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.createPaymentManager(context, null);
 
         ArgumentCaptor<PartnerInfo> argumentCaptor = ArgumentCaptor.forClass(PartnerInfo.class);
@@ -476,7 +476,7 @@ public class SamsungPayUnitTest {
     public void createPaymentManager_sendsAnalyticEvent() {
         PaymentManager mockedManager = mock(PaymentManager.class);
         stubPaymentManager(mockedManager);
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.createPaymentManager(context, null);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.create-payment-manager.success");
@@ -488,7 +488,7 @@ public class SamsungPayUnitTest {
         stubPaymentManager(mockedManager);
         CustomSheetPaymentInfo paymentInfo = getCustomSheetPaymentInfo();
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedManager, paymentInfo, mock(SamsungPayCustomTransactionUpdateListener.class), samsungPayTransactionCallback);
 
         verify(mockedManager).startInAppPayWithCustomSheet(eq(paymentInfo), any(PaymentManager.CustomSheetTransactionInfoListener.class));
@@ -505,7 +505,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
 
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
@@ -529,7 +529,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -557,7 +557,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -584,7 +584,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -607,7 +607,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<Integer> requestCodeCaptor = ArgumentCaptor.forClass(Integer.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -632,7 +632,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -655,7 +655,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<SamsungPayNonce> paymentMethodNonceCaptor = ArgumentCaptor.forClass(SamsungPayNonce.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -696,7 +696,7 @@ public class SamsungPayUnitTest {
         ArgumentCaptor<PaymentManager.CustomSheetTransactionInfoListener> listenerCaptor = ArgumentCaptor.forClass(PaymentManager.CustomSheetTransactionInfoListener.class);
         SamsungPayCustomTransactionUpdateListener mockedListener = mock(SamsungPayCustomTransactionUpdateListener.class);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.requestPayment(mockedPaymentManager, getCustomSheetPaymentInfo(), mockedListener, samsungPayTransactionCallback);
         verify(mockedPaymentManager).startInAppPayWithCustomSheet(any(CustomSheetPaymentInfo.class),
                 listenerCaptor.capture());
@@ -711,7 +711,7 @@ public class SamsungPayUnitTest {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
         stubSamsungPay(mockSamsungPay);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.goToUpdatePage(context);
 
         verify(mockSamsungPay).goToUpdatePage();
@@ -722,7 +722,7 @@ public class SamsungPayUnitTest {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
         stubSamsungPay(mockSamsungPay);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.goToUpdatePage(context);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.goto-update-page");
@@ -733,7 +733,7 @@ public class SamsungPayUnitTest {
         final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
         stubSamsungPay(mockSamsungPay);
 
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.activateSamsungPay(context);
 
         verify(mockSamsungPay).activateSamsungPay();
@@ -741,10 +741,7 @@ public class SamsungPayUnitTest {
 
     @Test
     public void activateSamsungPay_sendsAnalyticEvent() {
-        final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockSamsungPay = mock(com.samsung.android.sdk.samsungpay.v2.SamsungPay.class);
-        stubSamsungPay(mockSamsungPay);
-
-        SamsungPay sut = new SamsungPay(braintreeClient);
+        SamsungPayClient sut = new SamsungPayClient(braintreeClient);
         sut.activateSamsungPay(context);
 
         verify(braintreeClient).sendAnalyticsEvent("samsung-pay.activate-samsung-pay");
@@ -776,11 +773,11 @@ public class SamsungPayUnitTest {
     }
 
     private void stubSamsungPay(final com.samsung.android.sdk.samsungpay.v2.SamsungPay mockedSamsungPay) {
-        stub(method(SamsungPay.Companion.class, "getSamsungPay")).toReturn(mockedSamsungPay);
+        stub(method(SamsungPayClient.class, "getSamsungPay")).toReturn(mockedSamsungPay);
     }
 
     private void stubPaymentManager(final PaymentManager mockedPaymentManager) {
-        stub(method(SamsungPay.Companion.class, "getPaymentManager")).toReturn(mockedPaymentManager);
+        stub(method(SamsungPayClient.class, "getPaymentManager")).toReturn(mockedPaymentManager);
     }
 
     private void stubPaymentManagerRequestCardInfo(final List<CardInfo> cardInfos) {

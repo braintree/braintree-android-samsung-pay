@@ -14,7 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import com.braintreepayments.api.BraintreeFragment;
-import com.braintreepayments.api.SamsungPay;
+import com.braintreepayments.api.SamsungPayClient;
 import com.braintreepayments.api.SamsungPayAvailability;
 import com.braintreepayments.api.exceptions.InvalidArgumentException;
 import com.braintreepayments.api.exceptions.SamsungPayException;
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
         } catch (InvalidArgumentException ignored) {
         }
 
-        SamsungPay.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
+        SamsungPayClient.isReadyToPay(mBraintreeFragment, new BraintreeResponseListener<SamsungPayAvailability>() {
             @Override
             public void onResponse(SamsungPayAvailability availability) {
                 switch (availability.getStatus()) {
@@ -121,11 +121,11 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                         Integer reason = availability.getReason();
                         if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
                             showDialog("Need to update Samsung Pay app...");
-                            SamsungPay.goToUpdatePage(mBraintreeFragment);
+                            SamsungPayClient.goToUpdatePage(mBraintreeFragment);
                         } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
                             showDialog("Samsung Pay setup not completed...");
-                            SamsungPay.activateSamsungPay(mBraintreeFragment);
-                        } else if (reason == SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
+                            SamsungPayClient.activateSamsungPay(mBraintreeFragment);
+                        } else if (reason == SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
                             showDialog("No supported cards in wallet");
                         }
                         break;
@@ -139,12 +139,12 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
     }
 
     public void tokenize(View v) {
-        SamsungPay.createPaymentManager(, new BraintreeResponseListener<PaymentManager>() {
+        SamsungPayClient.createPaymentManager(, new BraintreeResponseListener<PaymentManager>() {
             @Override
             public void onResponse(PaymentManager paymentManager) {
                 mPaymentManager = paymentManager;
 
-                SamsungPay.createPaymentInfo(new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
+                SamsungPayClient.createPaymentInfo(new BraintreeResponseListener<CustomSheetPaymentInfo.Builder>() {
                     @Override
                     public void onResponse(CustomSheetPaymentInfo.Builder builder) {
                         CustomSheetPaymentInfo paymentInfo = builder
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements BraintreeErrorLis
                                 .build();
 
 
-                        SamsungPay.requestPayment(mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
+                        SamsungPayClient.requestPayment(mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
                             @Override
                             public void onSuccess(CustomSheetPaymentInfo response, Bundle extraPaymentData) {
                                 CustomSheet customSheet = response.getCustomSheet();

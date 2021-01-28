@@ -31,7 +31,7 @@ class SamsungPayAvailability() {
     }
 }
 
-class SamsungPay(private var braintreeClient: BraintreeClient) {
+class SamsungPayClient(private var braintreeClient: BraintreeClient) {
 
     companion object {
         const val SPAY_NO_SUPPORTED_CARDS_IN_WALLET = -10000
