@@ -12,13 +12,15 @@ import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet
 
 internal class SamsungPayCustomTransactionListenerWrapper(
         val paymentManager: PaymentManager,
-        val merchantCallback: SamsungPayCustomTransactionUpdateListener
+        val merchantCallback: SamsungPayCustomTransactionUpdateListener,
+        val braintreeClient: BraintreeClient,
+        val callback: SamsungPayCustomTransactionCallback
 ) : PaymentManager.CustomSheetTransactionInfoListener {
 
     override fun onSuccess(response: CustomSheetPaymentInfo?, paymentCredential: String?, extraPaymentData: Bundle?) {
         if (paymentCredential != null) {
-            fragment.postCallback(SamsungPayNonce.fromPaymentData(paymentCredential))
-            fragment.sendAnalyticsEvent("samsung-pay.request-payment.success")
+            callback.onResult(SamsungPayNonce.fromPaymentData(paymentCredential), null)
+            braintreeClient.sendAnalyticsEvent("samsung-pay.request-payment.success")
         }
 
         if (response != null) {
@@ -30,11 +32,12 @@ internal class SamsungPayCustomTransactionListenerWrapper(
 
     override fun onFailure(errorCode: Int, extras: Bundle?) {
         if (errorCode == SpaySdk.ERROR_USER_CANCELED) {
-            fragment.postCancelCallback(BraintreeRequestCodes.SAMSUNG_PAY)
-            fragment.sendAnalyticsEvent("samsung-pay.request-payment.user-canceled")
+            // TODO: fix
+//            fragment.postCancelCallback(BraintreeRequestCodes.SAMSUNG_PAY)
+            braintreeClient.sendAnalyticsEvent("samsung-pay.request-payment.user-canceled")
         } else {
-            fragment.postCallback(SamsungPayException(errorCode, extras))
-            fragment.sendAnalyticsEvent("samsung-pay.request-payment.failed")
+            callback.onResult(null, SamsungPayException(errorCode, extras))
+            braintreeClient.sendAnalyticsEvent("samsung-pay.request-payment.failed")
         }
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import com.braintreepayments.api.exceptions.SamsungPayException
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener
+import com.braintreepayments.api.models.SamsungPayNonce
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
@@ -243,7 +244,11 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
     ) {
         paymentManager.startInAppPayWithCustomSheet(
                 customSheetPaymentInfo,
-                SamsungPayCustomTransactionListenerWrapper(paymentManager, listener)
+                SamsungPayCustomTransactionListenerWrapper(paymentManager, listener, braintreeClient, object : SamsungPayCustomTransactionCallback {
+                    override fun onResult(samsungPayNonce: SamsungPayNonce?, error: Exception?) {
+                        // TODO: handle
+                    }
+                })
         )
     }
 
