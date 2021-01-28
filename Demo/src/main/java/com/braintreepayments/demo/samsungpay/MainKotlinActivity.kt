@@ -68,7 +68,7 @@ class MainKotlinActivity : AppCompatActivity() {
     private lateinit var authorization: String
     private lateinit var endpoint: String
 
-    private lateinit var samsungPayClient: SamsungPayClient
+    private lateinit var samsungPay: SamsungPay
 
     private val customSheet: CustomSheet
         get() {
@@ -140,11 +140,11 @@ class MainKotlinActivity : AppCompatActivity() {
 
         try {
             var braintreeClient = BraintreeClient(Authorization.fromString(authorization), this, "sample.return.scheme")
-            samsungPayClient = SamsungPayClient(braintreeClient)
+            samsungPay = SamsungPay(braintreeClient)
         } catch (ignored: InvalidArgumentException) {
         }
 
-        samsungPayClient.isReadyToPay(this, object : SamsungPayIsReadyToPayCallback {
+        samsungPay.isReadyToPay(this, object : SamsungPayIsReadyToPayCallback {
             override fun onResult(samsungPayAvailability: SamsungPayAvailability?, error: Exception?) {
                 when (samsungPayAvailability?.status) {
                     SPAY_READY -> tokenizeButton.isEnabled = true
@@ -152,11 +152,11 @@ class MainKotlinActivity : AppCompatActivity() {
                         val reason = samsungPayAvailability?.reason
                         if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
                             showDialog("Need to update Samsung Pay app...")
-                            samsungPayClient.goToUpdatePage(this@MainKotlinActivity)
+                            samsungPay.goToUpdatePage(this@MainKotlinActivity)
                         } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
                             showDialog("Samsung Pay setup not completed...")
-                            samsungPayClient.activateSamsungPay(this@MainKotlinActivity)
-                        } else if (reason == SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
+                            samsungPay.activateSamsungPay(this@MainKotlinActivity)
+                        } else if (reason == SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
                             showDialog("No supported cards in wallet")
                         }
                     }
@@ -170,17 +170,17 @@ class MainKotlinActivity : AppCompatActivity() {
     }
 
     fun tokenize(@Suppress("UNUSED_PARAMETER") v: View) {
-        samsungPayClient.createPaymentManager(this, object : SamsungPayCreatePaymentManagerCallback {
+        samsungPay.createPaymentManager(this, object : SamsungPayCreatePaymentManagerCallback {
             override fun onResult(paymentManager: PaymentManager?, error: Exception?) {
                 paymentManager?.let { paymentManager ->
-                    samsungPayClient.createPaymentInfo(object : SamsungPayCreatePaymentInfoCallback {
+                    samsungPay.createPaymentInfo(object : SamsungPayCreatePaymentInfoCallback {
                         override fun onResult(builder: CustomSheetPaymentInfo.Builder, error: Exception?) {
                             val paymentInfo = builder
                                     .setAddressInPaymentSheet(CustomSheetPaymentInfo.AddressInPaymentSheet.NEED_BILLING_AND_SHIPPING)
                                     .setCustomSheet(customSheet)
                                     .setOrderNumber("order-number")
                                     .build()
-                            samsungPayClient.requestPayment(paymentManager, paymentInfo, object : SamsungPayCustomTransactionUpdateListener {
+                            samsungPay.requestPayment(paymentManager, paymentInfo, object : SamsungPayCustomTransactionUpdateListener {
                                 override fun onCardInfoUpdated(cardInfo: CardInfo, customSheet: CustomSheet) {
                                     val amountBoxControl = customSheet.getSheetControl("amountID") as AmountBoxControl
                                     amountBoxControl.updateValue("itemId", 1.0)

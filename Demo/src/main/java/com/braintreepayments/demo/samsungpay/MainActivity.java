@@ -4,7 +4,7 @@ import androidx.appcompat.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,7 +20,7 @@ import com.braintreepayments.api.BraintreeClient;
 import com.braintreepayments.api.BraintreeRequestCodes;
 import com.braintreepayments.api.InvalidArgumentException;
 import com.braintreepayments.api.PaymentMethodNonce;
-import com.braintreepayments.api.SamsungPayClient;
+import com.braintreepayments.api.SamsungPay;
 import com.braintreepayments.api.SamsungPayAvailability;
 import com.braintreepayments.api.SamsungPayCreatePaymentInfoCallback;
 import com.braintreepayments.api.SamsungPayCreatePaymentManagerCallback;
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private String mAuthorization;
     private String mEndpoint;
 
-    private SamsungPayClient samsungPayClient;
+    private SamsungPay samsungPay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,11 +118,11 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             BraintreeClient braintreeClient = new BraintreeClient(Authorization.fromString(mAuthorization), this, "sample.return.scheme");
-            samsungPayClient = new SamsungPayClient(braintreeClient);
+            samsungPay = new SamsungPay(braintreeClient);
         } catch (InvalidArgumentException ignored) {
         }
 
-        samsungPayClient.isReadyToPay(this, new SamsungPayIsReadyToPayCallback() {
+        samsungPay.isReadyToPay(this, new SamsungPayIsReadyToPayCallback() {
             @Override
             public void onResult(@Nullable SamsungPayAvailability samsungPayAvailability, @Nullable Exception error) {
                 switch (samsungPayAvailability.getStatus()) {
@@ -133,11 +133,11 @@ public class MainActivity extends AppCompatActivity {
                         Integer reason = samsungPayAvailability.getReason();
                         if (reason == ERROR_SPAY_APP_NEED_TO_UPDATE) {
                             showDialog("Need to update Samsung Pay app...");
-                            samsungPayClient.goToUpdatePage(MainActivity.this);
+                            samsungPay.goToUpdatePage(MainActivity.this);
                         } else if (reason == ERROR_SPAY_SETUP_NOT_COMPLETED) {
                             showDialog("Samsung Pay setup not completed...");
-                            samsungPayClient.activateSamsungPay(MainActivity.this);
-                        } else if (reason == SamsungPayClient.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
+                            samsungPay.activateSamsungPay(MainActivity.this);
+                        } else if (reason == SamsungPay.SPAY_NO_SUPPORTED_CARDS_IN_WALLET) {
                             showDialog("No supported cards in wallet");
                         }
                         break;
@@ -151,12 +151,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void tokenize(View v) {
-        samsungPayClient.createPaymentManager(this, new SamsungPayCreatePaymentManagerCallback() {
+        samsungPay.createPaymentManager(this, new SamsungPayCreatePaymentManagerCallback() {
             @Override
             public void onResult(@Nullable PaymentManager paymentManager, @Nullable Exception error) {
                 mPaymentManager = paymentManager;
 
-                samsungPayClient.createPaymentInfo(new SamsungPayCreatePaymentInfoCallback() {
+                samsungPay.createPaymentInfo(new SamsungPayCreatePaymentInfoCallback() {
                     @Override
                     public void onResult(@NotNull CustomSheetPaymentInfo.Builder builder, @Nullable Exception error) {
                         CustomSheetPaymentInfo paymentInfo = builder
@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                                 .setOrderNumber("order-number")
                                 .build();
 
-                        samsungPayClient.requestPayment(mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
+                        samsungPay.requestPayment(mPaymentManager, paymentInfo, new SamsungPayCustomTransactionUpdateListener() {
                             @Override
                             public void onSuccess(@NotNull CustomSheetPaymentInfo response, @NotNull Bundle extraPaymentData) {
                                 CustomSheet customSheet = response.getCustomSheet();
