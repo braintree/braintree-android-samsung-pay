@@ -42,11 +42,15 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      * @param [context] [BraintreeFragment]
      */
     fun goToUpdatePage(context: Context) {
-        getPartnerInfo(BraintreeResponseListener { braintreePartnerInfo ->
-            val samsungPay = getSamsungPay(context, braintreePartnerInfo)
+        getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
+            override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
+                val samsungPay = partnerInfo?.let { getSamsungPay(context, it) }
 
-            samsungPay.goToUpdatePage()
-            braintreeClient.sendAnalyticsEvent("samsung-pay.goto-update-page")
+                if (samsungPay != null) {
+                    samsungPay.goToUpdatePage()
+                }
+                braintreeClient.sendAnalyticsEvent("samsung-pay.goto-update-page")
+            }
         })
     }
 
@@ -57,11 +61,15 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      * @param [context] [BraintreeFragment]
      */
     fun activateSamsungPay(context: Context) {
-        getPartnerInfo(BraintreeResponseListener { braintreePartnerInfo ->
-            val samsungPay = getSamsungPay(context, braintreePartnerInfo)
+        getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
+            override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
+                val samsungPay = partnerInfo?.let { getSamsungPay(context, it) }
 
-            samsungPay.activateSamsungPay()
-            braintreeClient.sendAnalyticsEvent("samsung-pay.activate-samsung-pay")
+                if (samsungPay != null) {
+                    samsungPay.activateSamsungPay()
+                }
+                braintreeClient.sendAnalyticsEvent("samsung-pay.activate-samsung-pay")
+            }
         })
     }
 
@@ -90,40 +98,43 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
             return
         }
 
-        getPartnerInfo(BraintreeResponseListener { braintreePartnerInfo ->
-            val samsungPay = getSamsungPay(context, braintreePartnerInfo)
+        getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
+            override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
 
-            samsungPay.getSamsungPayStatus(object : StatusListener {
-                override fun onSuccess(status: Int, bundle: Bundle) {
-                    val samsungPayAvailability = SamsungPayAvailability(status, bundle)
+                partnerInfo?.let { getSamsungPay(context, it) }?.getSamsungPayStatus(object : StatusListener {
+                    override fun onSuccess(status: Int, bundle: Bundle) {
+                        val samsungPayAvailability = SamsungPayAvailability(status, bundle)
 
-                    if (status != SPAY_READY) {
-                        when (status) {
-                            SPAY_NOT_SUPPORTED -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.device-not-supported")
-                            SPAY_NOT_READY -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.not-ready")
+                        if (status != SPAY_READY) {
+                            when (status) {
+                                SPAY_NOT_SUPPORTED -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.device-not-supported")
+                                SPAY_NOT_READY -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.not-ready")
+                            }
+                            callback.onResult(samsungPayAvailability, null)
+                            return
                         }
-                        callback.onResult(samsungPayAvailability, null)
-                        return
+
+                        if (partnerInfo != null) {
+                            requestCardInfo(context, partnerInfo, object : SamsungPayRequestCardInfoCallback {
+                                override fun onResult(cardInfoAvailability: SamsungPayAvailability?, error: Exception?) {
+                                    val availability = cardInfoAvailability ?: samsungPayAvailability
+
+                                    if (availability.status == SPAY_READY) {
+                                        braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.ready")
+                                    }
+
+                                    callback.onResult(availability, null)
+                                }
+                            })
+                        }
                     }
 
-                    requestCardInfo(context, braintreePartnerInfo, object : SamsungPayRequestCardInfoCallback {
-                        override fun onResult(cardInfoAvailability: SamsungPayAvailability?, error: Exception?) {
-                            val availability = cardInfoAvailability ?: samsungPayAvailability
-
-                            if (availability.status == SPAY_READY) {
-                                braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.ready")
-                            }
-
-                            callback.onResult(availability, null)
-                        }
-                    })
-                }
-
-                override fun onFail(errorCode: Int, bundle: Bundle) {
-                    callback.onResult(null, SamsungPayException(errorCode, bundle))
-                    braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.failed")
-                }
-            })
+                    override fun onFail(errorCode: Int, bundle: Bundle) {
+                        callback.onResult(null, SamsungPayException(errorCode, bundle))
+                        braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.failed")
+                    }
+                })
+            }
         })
     }
 
@@ -175,13 +186,16 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
     fun createPaymentInfo(
             listener: BraintreeResponseListener<CustomSheetPaymentInfo.Builder>
     ) {
-        getPartnerInfo(BraintreeResponseListener { braintreePartnerInfo ->
-            val paymentInfo = CustomSheetPaymentInfo.Builder()
-                    .setMerchantName(braintreePartnerInfo.configuration.merchantDisplayName)
-                    .setMerchantId(braintreePartnerInfo.configuration.samsungAuthorization)
-                    .setAllowedCardBrands(getAcceptedCardBrands(braintreePartnerInfo.configuration.supportedCardBrands))
-            listener.onResponse(paymentInfo)
-            braintreeClient.sendAnalyticsEvent("samsung-pay.create-payment-info.success")
+        getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
+            override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
+                partnerInfo?.let {
+                    val paymentInfo = CustomSheetPaymentInfo.Builder()
+                            .setMerchantName(partnerInfo.configuration.merchantDisplayName)
+                            .setMerchantId(partnerInfo.configuration.samsungAuthorization)
+                            .setAllowedCardBrands(getAcceptedCardBrands(partnerInfo.configuration.supportedCardBrands))
+                    listener.onResponse(paymentInfo)
+                }
+            }
         })
     }
 
@@ -191,16 +205,18 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      * This instance should be used to update Samsung Pay's custom sheets and sheet controls.
      *
      * @param [fragment] [BraintreeFragment]
-     * @param [listener] Returns the [PaymentManager] instance.
+     * @param [callback] Returns the [PaymentManager] instance.
      */
     fun createPaymentManager(
             context: Context,
-            listener: BraintreeResponseListener<PaymentManager>
+            callback: SamsungPayCreatePaymentManagerCallback
     ) {
-        getPartnerInfo(BraintreeResponseListener { braintreePartnerInfo ->
-            val paymentManager = getPaymentManager(context, braintreePartnerInfo)
-            listener.onResponse(paymentManager)
-            braintreeClient.sendAnalyticsEvent("samsung-pay.create-payment-manager.success")
+        getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
+            override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
+                val paymentManager = partnerInfo?.let { getPaymentManager(context, it) }
+                callback.onResult(paymentManager, null)
+                braintreeClient.sendAnalyticsEvent("samsung-pay.create-payment-manager.success")
+            }
         })
     }
 
@@ -255,7 +271,7 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
     }
 
     private fun getPartnerInfo(
-            listener: BraintreeResponseListener<BraintreePartnerInfo>
+            callback: SamsungPayGetPartnerInfoCallback
     ) {
         braintreeClient.getConfiguration() { configuration, error ->
             configuration?.let {
@@ -279,7 +295,7 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
 
                 bundle.putString("additionalData", additionalData.toString())
 
-                listener.onResponse(BraintreePartnerInfo(configuration.samsungPay, bundle))
+                callback.onResult(BraintreePartnerInfo(configuration.samsungPay, bundle), null)
             }
         }
     }

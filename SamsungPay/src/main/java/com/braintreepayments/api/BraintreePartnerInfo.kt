@@ -1,7 +1,7 @@
 package com.braintreepayments.api
 
 import android.os.Bundle
-import com.braintreepayments.api.models.SamsungPayConfiguration
+import com.braintreepayments.api.SamsungPayConfiguration
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 
 internal class BraintreePartnerInfo(
