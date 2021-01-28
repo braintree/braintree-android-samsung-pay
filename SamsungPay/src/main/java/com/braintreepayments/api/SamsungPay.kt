@@ -40,16 +40,12 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      * Forwards the user to the Samsung Pay update page.
      * This should be invoked when Samsung Pay returns the [ERROR_SPAY_APP_NEED_TO_UPDATE] result from [isReadyToPay].
      *
-     * @param [context] [BraintreeFragment]
+     * @param [context] [Context]
      */
     fun goToUpdatePage(context: Context) {
         getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
             override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
-                val samsungPay = partnerInfo?.let { getSamsungPay(context, it) }
-
-                if (samsungPay != null) {
-                    samsungPay.goToUpdatePage()
-                }
+                partnerInfo?.let { getSamsungPay(context, it) }?.goToUpdatePage()
                 braintreeClient.sendAnalyticsEvent("samsung-pay.goto-update-page")
             }
         })
@@ -59,16 +55,12 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      * Forwards the user to the Samsung Pay activate page.
      * This should be invoked when Samsung Pay returns the [ERROR_SPAY_SETUP_NOT_COMPLETED] result from [isReadyToPay].
      *
-     * @param [context] [BraintreeFragment]
+     * @param [context] [Context]
      */
     fun activateSamsungPay(context: Context) {
         getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
             override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
-                val samsungPay = partnerInfo?.let { getSamsungPay(context, it) }
-
-                if (samsungPay != null) {
-                    samsungPay.activateSamsungPay()
-                }
+                partnerInfo?.let { getSamsungPay(context, it) }?.activateSamsungPay()
                 braintreeClient.sendAnalyticsEvent("samsung-pay.activate-samsung-pay")
             }
         })
@@ -77,13 +69,12 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
     /**
      * Call isReadyToPay before starting your Samsung Pay flow. isReadyToPay will call you back with the
      * status of Samsung Pay. If the Samsung Pay jar has not been included, or if the status of
-     * Samsung Pay is anything but [SamsungPayStatus.SPAY_READY], the listener will be called back
+     * Samsung Pay is anything but [SpaySdk.SPAY_READY], the callback will be called back
      * with a value of false. If the Samsung Pay callback fails and returns an error, that error
-     * will be posted to the [BraintreeErrorListener] callback attached to the instance of
-     * [BraintreeFragment] passed in here.
+     * will be posted to the [SamsungPayIsReadyToPayCallback].
      *
-     * @param [context] [BraintreeFragment]
-     * @param [callback] Callback with [SamsungPayAvailability]. Properties returned are:
+     * @param [context] [Context]
+     * @param [callback] [SamsungPayIsReadyToPayCallback] with [SamsungPayAvailability]. Properties returned are:
      *
      * SPAY_READY - Samsung Pay is ready to handle the payment.
      *
@@ -182,10 +173,9 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      * Creates a [CustomSheetPaymentInfo.Builder] with Braintree properties such as the merchant ID, merchant name,
      * and allowed card brands.
      *
-     * The builder returned from the [BraintreeResponseListener] can be used to set merchant properties such as the
+     * The builder returned from the [SamsungPayGetPartnerInfoCallback] can be used to set merchant properties such as the
      * custom sheet, address requirements, and etc.
      *
-     * @param [fragment] [BraintreeFragment]
      * @param [callback] Returns a [CustomSheetPaymentInfo.Builder] that can be modified
      * for the merchant's requirements.
      */
@@ -212,7 +202,7 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      *
      * This instance should be used to update Samsung Pay's custom sheets and sheet controls.
      *
-     * @param [fragment] [BraintreeFragment]
+     * @param [context] [Context]
      * @param [callback] Returns the [PaymentManager] instance.
      */
     fun createPaymentManager(
@@ -229,9 +219,8 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
     }
 
     /**
-     * Takes a [CustomSheetInfo.Builder] and starts the Samsung Pay flow with some custom sheet provided.
+     * Takes a [CustomSheetPaymentInfo.Builder] and starts the Samsung Pay flow with some custom sheet provided.
      *
-     * @param [fragment] [BraintreeFragment]
      * @param [paymentManager] [PaymentManager] returned from [createPaymentManager].
      * Used to update the Samsung Pay custom sheets.
      * @param [customSheetPaymentInfo] The [CustomSheetPaymentInfo] returned by [createPaymentInfo], and modified for the
@@ -269,15 +258,15 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
         return ClassHelper.isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
     }
 
-    private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<SpaySdk.Brand> {
-        val samsungAcceptedList = ArrayList<SpaySdk.Brand>()
+    private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<Brand> {
+        val samsungAcceptedList = ArrayList<Brand>()
 
         for (braintreeAcceptedCardBrand in configurationBrands) {
             when (braintreeAcceptedCardBrand.toLowerCase()) {
-                "visa" -> samsungAcceptedList.add(SpaySdk.Brand.VISA)
-                "mastercard" -> samsungAcceptedList.add(SpaySdk.Brand.MASTERCARD)
-                "discover" -> samsungAcceptedList.add(SpaySdk.Brand.DISCOVER)
-                "american_express" -> samsungAcceptedList.add(SpaySdk.Brand.AMERICANEXPRESS)
+                "visa" -> samsungAcceptedList.add(Brand.VISA)
+                "mastercard" -> samsungAcceptedList.add(Brand.MASTERCARD)
+                "discover" -> samsungAcceptedList.add(Brand.DISCOVER)
+                "american_express" -> samsungAcceptedList.add(Brand.AMERICANEXPRESS)
             }
         }
 
