@@ -103,24 +103,29 @@ class SamsungPayClient(private var braintreeClient: BraintreeClient) {
 
         getPartnerInfo(object : SamsungPayGetPartnerInfoCallback {
             override fun onResult(partnerInfo: BraintreePartnerInfo?, error: Exception?) {
+                if (partnerInfo != null) {
+                    val samsungPay = getSamsungPay(context, partnerInfo)
+                    samsungPay.getSamsungPayStatus(object : StatusListener {
+                        override fun onSuccess(status: Int, bundle: Bundle) {
+                            val samsungPayAvailability = SamsungPayAvailability(status, bundle)
 
-                partnerInfo?.let { getSamsungPay(context, it) }?.getSamsungPayStatus(object : StatusListener {
-                    override fun onSuccess(status: Int, bundle: Bundle) {
-                        val samsungPayAvailability = SamsungPayAvailability(status, bundle)
-
-                        if (status != SPAY_READY) {
-                            when (status) {
-                                SPAY_NOT_SUPPORTED -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.device-not-supported")
-                                SPAY_NOT_READY -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.not-ready")
+                            if (status != SPAY_READY) {
+                                when (status) {
+                                    SPAY_NOT_SUPPORTED -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.device-not-supported")
+                                    SPAY_NOT_READY -> braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.not-ready")
+                                }
+                                callback.onResult(samsungPayAvailability, null)
+                                return
                             }
-                            callback.onResult(samsungPayAvailability, null)
-                            return
-                        }
 
-                        if (partnerInfo != null) {
                             requestCardInfo(context, partnerInfo, object : SamsungPayRequestCardInfoCallback {
                                 override fun onResult(cardInfoAvailability: SamsungPayAvailability?, error: Exception?) {
-                                    val availability = cardInfoAvailability ?: samsungPayAvailability
+                                    error?.let {
+                                        callback.onResult(null, error)
+                                        return
+                                    }
+                                    val availability = cardInfoAvailability
+                                            ?: samsungPayAvailability
 
                                     if (availability.status == SPAY_READY) {
                                         braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.ready")
@@ -130,13 +135,13 @@ class SamsungPayClient(private var braintreeClient: BraintreeClient) {
                                 }
                             })
                         }
-                    }
 
-                    override fun onFail(errorCode: Int, bundle: Bundle) {
-                        callback.onResult(null, SamsungPayException(errorCode, bundle))
-                        braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.failed")
-                    }
-                })
+                        override fun onFail(errorCode: Int, bundle: Bundle) {
+                            callback.onResult(null, SamsungPayException(errorCode, bundle))
+                            braintreeClient.sendAnalyticsEvent("samsung-pay.is-ready-to-pay.failed")
+                        }
+                    })
+                }
             }
         })
     }
@@ -197,6 +202,7 @@ class SamsungPayClient(private var braintreeClient: BraintreeClient) {
                             .setMerchantId(partnerInfo.configuration.samsungAuthorization)
                             .setAllowedCardBrands(getAcceptedCardBrands(partnerInfo.configuration.supportedCardBrands))
                     listener.onResponse(paymentInfo)
+                    braintreeClient.sendAnalyticsEvent("samsung-pay.create-payment-info.success")
                 }
             }
         })

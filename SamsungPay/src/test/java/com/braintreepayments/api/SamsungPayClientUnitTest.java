@@ -4,10 +4,10 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+
 import com.braintreepayments.api.exceptions.SamsungPayException;
 import com.braintreepayments.api.interfaces.SamsungPayCustomTransactionUpdateListener;
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo;
-import com.samsung.android.sdk.samsungpay.v2.SamsungPay;
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk;
 import com.samsung.android.sdk.samsungpay.v2.StatusListener;
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo;
@@ -41,17 +41,25 @@ import static com.braintreepayments.api.BinData.NO;
 import static com.braintreepayments.api.BinData.UNKNOWN;
 import static com.braintreepayments.api.BinData.YES;
 import static com.braintreepayments.api.test.FixturesHelper.stringFromFixture;
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.powermock.api.mockito.PowerMockito.method;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.stub;
+import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(RobolectricTestRunner.class)
@@ -780,7 +788,7 @@ public class SamsungPayClientUnitTest {
         stub(method(SamsungPayClient.class, "getSamsungPay")).toReturn(mockedSamsungPay);
     }
 
-    private void stubPaymentManager(final PaymentManager mockedPaymentManager) {
+    private void stubPaymentManager(final com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager mockedPaymentManager) {
         stub(method(SamsungPayClient.class, "getPaymentManager")).toReturn(mockedPaymentManager);
     }
 
