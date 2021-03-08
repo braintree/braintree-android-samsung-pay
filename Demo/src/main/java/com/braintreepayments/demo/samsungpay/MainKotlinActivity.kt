@@ -115,8 +115,8 @@ class MainKotlinActivity : AppCompatActivity(), BraintreeErrorListener, Braintre
         setContentView(R.layout.activity_main)
 
         val extras = intent.extras
-        authorization = extras.getString(EXTRA_AUTHORIZATION, SANDBOX_TOKENIZATION_KEY)
-        endpoint = extras.getString(EXTRA_ENDPOINT, SANDBOX_ENDPOINT)
+        authorization = extras?.getString(EXTRA_AUTHORIZATION) ?: SANDBOX_TOKENIZATION_KEY
+        endpoint = extras?.getString(EXTRA_ENDPOINT) ?: SANDBOX_ENDPOINT
 
         environmentGroup.check(when(authorization) {
             PRODUCTION_TOKENIZATION_KEY -> R.id.production

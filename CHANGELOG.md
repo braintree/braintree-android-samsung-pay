@@ -1,5 +1,9 @@
 # Braintree Android Samsung Pay SDK Release Notes
 
+## unreleased
+
+* Bump `compileSdkVersion` and `targetSdkVersion` to API level 30
+
 ## 2.0.0
 
 * Convert to AndroidX

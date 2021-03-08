@@ -14,14 +14,6 @@ dependencies {
 }
 ```
 
-To use the latest build from the `master` branch use:
-
-```groovy
-dependencies {
-  implementation 'com.braintreepayments.api:samsung-pay:2.0.1-SNAPSHOT'
-}
-```
-
 ## Help
 
 * [Read the javadocs](http://javadoc.io/doc/com.braintreepayments.api/braintree-android-samsung-pay/)
