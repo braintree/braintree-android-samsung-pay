@@ -71,9 +71,6 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 public class SamsungPayUnitTest {
     private static final String BRAINTREE_TOKENIZATION_API_VERSION = "2018-10-01";
 
-    @Rule
-    public PowerMockRule mPowerMockRule = new PowerMockRule();
-
     private BraintreeClient braintreeClient;
     private Context context;
     private SamsungPayTransactionCallback samsungPayTransactionCallback;
