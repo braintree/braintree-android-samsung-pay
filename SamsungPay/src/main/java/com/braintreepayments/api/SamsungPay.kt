@@ -255,10 +255,10 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
      * the Samsung Pay jar file in your declared app dependencies.
      */
     fun isSamsungPayAvailable(): Boolean {
-        return ClassHelper.isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
+        return ClassHelper().isClassAvailable("com.samsung.android.sdk.samsungpay.v2.SamsungPay")
     }
 
-    private fun getAcceptedCardBrands(configurationBrands: Set<String>): List<Brand> {
+    private fun getAcceptedCardBrands(configurationBrands: MutableList<String>): List<Brand> {
         val samsungAcceptedList = ArrayList<Brand>()
 
         for (braintreeAcceptedCardBrand in configurationBrands) {
@@ -283,7 +283,7 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
                 bundle.putString(PARTNER_SERVICE_TYPE, ServiceType.INAPP_PAYMENT.toString())
                 bundle.putBoolean(
                         PaymentManager.EXTRA_KEY_TEST_MODE,
-                        configuration.samsungPay.environment.toUpperCase() == "SANDBOX"
+                        configuration.samsungPayEnvironment.toUpperCase() == "SANDBOX"
                 )
 
                 val additionalData = JSONObject()
@@ -298,7 +298,7 @@ class SamsungPay(private var braintreeClient: BraintreeClient) {
 
                 bundle.putString("additionalData", additionalData.toString())
 
-                callback.onResult(BraintreePartnerInfo(configuration.samsungPay, bundle), null)
+//                callback.onResult(BraintreePartnerInfo(configuration.samsungPay, bundle), null)
             }
         }
     }

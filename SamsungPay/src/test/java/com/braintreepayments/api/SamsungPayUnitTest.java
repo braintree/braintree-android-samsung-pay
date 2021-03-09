@@ -109,8 +109,8 @@ public class SamsungPayUnitTest {
 
     @Test
     public void isReadyToPay_whenSDKNotAvailable_returnsStatusNotSupported() throws InterruptedException {
-        mockStatic(ClassHelper.class);
-        when(ClassHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
+        ClassHelper classHelper = mock(ClassHelper.class);
+        when(classHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
 
         final CountDownLatch latch = new CountDownLatch(1);
 
@@ -129,8 +129,8 @@ public class SamsungPayUnitTest {
 
     @Test
     public void isReadyToPay_whenSDKNotAvailable_sendsAnalyticEvent() throws InterruptedException {
-        mockStatic(ClassHelper.class);
-        when(ClassHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
+        ClassHelper classHelper = mock(ClassHelper.class);
+        when(classHelper.isClassAvailable(eq("com.samsung.android.sdk.samsungpay.v2.SamsungPay"))).thenReturn(false);
 
         SamsungPay sut = new SamsungPay(braintreeClient);
         sut.isReadyToPay(context, samsungPayIsReadyToPayCallback);

@@ -42,6 +42,7 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.kotlinVersion}"
     compileOnly 'com.samsung.android.spay:sdk:2.5.01'
 
+    api 'com.braintreepayments.api:braintree-core:4.0.0-beta1'
     implementation 'androidx.annotation:annotation:1.0.1'
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
     implementation 'com.braintreepayments.api:braintree:3.14.1'

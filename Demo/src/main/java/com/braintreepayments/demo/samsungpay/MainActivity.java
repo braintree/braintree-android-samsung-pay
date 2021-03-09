@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         try {
-            BraintreeClient braintreeClient = new BraintreeClient(Authorization.fromString(mAuthorization), this, "sample.return.scheme");
+            BraintreeClient braintreeClient = new BraintreeClient(Authorization.fromString(mAuthorization), this);
             samsungPay = new SamsungPay(braintreeClient);
         } catch (InvalidArgumentException ignored) {
         }

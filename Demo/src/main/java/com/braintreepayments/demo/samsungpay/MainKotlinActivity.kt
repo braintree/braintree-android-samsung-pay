@@ -138,7 +138,7 @@ class MainKotlinActivity : AppCompatActivity() {
         transactButton.isEnabled = false
 
         try {
-            var braintreeClient = BraintreeClient(Authorization.fromString(authorization), this, "sample.return.scheme")
+            var braintreeClient = BraintreeClient(Authorization.fromString(authorization), this)
             samsungPay = SamsungPay(braintreeClient)
         } catch (ignored: InvalidArgumentException) {
         }
