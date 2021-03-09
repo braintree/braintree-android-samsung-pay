@@ -17,13 +17,11 @@ end
 
 desc "Interactive release to publish new version"
 task :release => :unit_tests do
-  puts "Ensure all tests are passing (`rake`)."
-  $stdin.gets
+  Rake::Task["assumptions"].invoke
 
   puts "What version are you releasing? (x.x.x format)"
   version = $stdin.gets.chomp
 
-  prompt_for_change_log(version)
   update_version(version)
   update_readme_version(version)
 
@@ -32,6 +30,17 @@ task :release => :unit_tests do
   Rake::Task["release_braintree_samsung_pay"].invoke
 
   post_release(version)
+end
+
+task :assumptions do
+    puts "Release Assumptions"
+    puts "* [ ] You are on the branch and commit you want to release."
+    puts "* [ ] You have already merged hotfixes and pulled changes."
+    puts "* [ ] You have already reviewed the diff between the current release and the last tag, noting breaking changes in the semver and CHANGELOG."
+    puts "* [ ] Tests (rake integration_tests) are passing, manual verifications complete."
+
+    puts "Ready to release? Press any key to continue. "
+    $stdin.gets
 end
 
 task :release_braintree_samsung_pay do
@@ -89,7 +98,7 @@ def post_release(version)
 
   puts "\nArchives are uploaded! Committing and tagging #{version} and preparing for the next development iteration"
   sh "git commit -am 'Release #{version}'"
-  sh "git tag -aF #{TMP_CHANGELOG_FILE} #{version}"
+  sh "git tag #{version} -a -m 'Release #{version}'"
 
   version_values = version.split('.')
   version_values[2] = version_values[2].to_i + 1
