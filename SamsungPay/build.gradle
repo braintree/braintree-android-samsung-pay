@@ -106,7 +106,7 @@ afterEvaluate {
 
                 pom {
                     name = 'samsung-pay'
-                    packaging = 'jar'
+                    packaging = 'aar'
                     description = 'Samsung Pay Module for Braintree\'s Android SDK.'
                     url = 'https://github.com/braintree/braintree-android-samsung-pay'
 
