@@ -38,7 +38,7 @@ import java.util.concurrent.CountDownLatch;
 import static com.braintreepayments.api.BinData.NO;
 import static com.braintreepayments.api.BinData.UNKNOWN;
 import static com.braintreepayments.api.BinData.YES;
-import static com.braintreepayments.api.test.FixturesHelper.stringFromFixture;
+import static com.braintreepayments.api.FixturesHelper.stringFromFixture;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
