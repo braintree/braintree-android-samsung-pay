@@ -1,5 +1,9 @@
 # Braintree Android Samsung Pay
 
+# :warning: DEPRECATED :warning:
+Braintree no longer uses or maintains this project. It remains available for
+research and derivative works, subject to the project's license.
+
 Braintree Android Samsung Pay is a module that allows you to accept Samsung Pay in your Android app. It is used in conjunction with Braintree Android SDK.
 
 Please create an [issue](https://github.com/braintree/braintree-android-samsung-pay/issues) with any comments or concerns.
