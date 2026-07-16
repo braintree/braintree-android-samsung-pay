@@ -1,6 +1,6 @@
 # Braintree Android Samsung Pay
 
-# :warning: DEPRECATED :warning:
+# :warning: End-of-Life :warning:
 Braintree no longer uses or maintains this project. It remains available for
 research and derivative works, subject to the project's license.
 
